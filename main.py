@@ -13,7 +13,7 @@ class Main:
     def reloadConfig(self):
         self.config = json.load(open("config.json"))
         if "mutedUsers" not in self.config:
-            self.config["mutedUsers"] = []
+            self.config["mutedUsers"] = {}
 
     def saveConfig(self):
         json.dump(self.config, fp=open("config.json", "w"), indent=4)
@@ -56,6 +56,7 @@ class Main:
         if text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
                        "!терпи", "!потерпи", "!завали", "!заткнись"):
             if len(text)>1:
+                chat_id = str(event.chat_id)
                 user_id, user_name = self.getmentioninfo(event)
                 # NOTE: implement mute all
                 # TODO: make independent function for getting user_id and user_name
@@ -65,7 +66,9 @@ class Main:
                 else:
                     text.append(-1)
                     time = text[2]
-                self.config["mutedUsers"].append([user_id, event.chat_id, text[2]])
+                print(self.config["mutedUsers"])
+                if chat_id not in self.config["mutedUsers"]: self.config["mutedUsers"][chat_id] = {}
+                self.config["mutedUsers"][chat_id][user_id] = {"time": text[2]}
                 self.saveConfig()
                 self.sendreply(event, f"{user_name} замучен на {time}.")
             else:
@@ -74,16 +77,16 @@ class Main:
     def unMuteHandler(self, event):
         text = event.text.split(" ")
         if text[0] in ("!размут", "!анмут"):
+            chat_id = event.chat_id
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
-                for i,user in enumerate(self.config["mutedUsers"]):
-                    if user[0]==user_id and user[1]==event.chat_id:
-                        self.config["mutedUsers"].pop(i)
+                if chat_id in self.config["mutedUsers"]:
+                    if user_id in self.config["mutedUsers"][chat_id]:
+                        self.config["mutedUsers"][chat_id].pop(user_id)
                         self.sendreply(event, f"{user_name} размучен.")
                         self.saveConfig()
-                        break
             else:
-                self.config["mutedUsers"] = []
+                self.config["mutedUsers"].pop(chat_id)
                 self.saveConfig()
                 self.sendreply(event, "Все размучены.")
 
@@ -96,11 +99,15 @@ class Main:
         self.mutedUserHandler(event)
 
     def mutedUserHandler(self, event):
-        for user in self.config["mutedUsers"]:
-            if int(time.time())>=user[2] and user[2]!=-1:
-                self.config["mutedUsers"].remove(user)
-            else:
-                if user[0]==event.user_id and event.chat_id==user[1]:
+        chat_id = event.chat_id
+        user_id = event.user_id
+        if chat_id in self.config["mutedUsers"]:
+            chat = self.config["mutedUsers"][chat_id]
+            if user_id in chat:
+                user = chat[user_id]
+                if int(time.time())>=user["time"] and user["time"]!=-1:
+                    chat.pop(user_id)
+                else:
                     self.method("messages.delete", {"message_ids": event.message_id, "delete_for_all": 1})
 
     @staticmethod
@@ -133,7 +140,11 @@ class Main:
         return "\n".join(text)
 
     def method(self, *args, **kwargs):
-        self.vk.method(*args, **kwargs)
+        try:
+            self.vk.method(*args, **kwargs)
+        except vk_api.exceptions.ApiError as error:
+            if error.code not in (11, 15, 100): # cannot reply to message
+                print(error)
 
 if __name__=="__main__":
     Main()
