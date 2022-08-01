@@ -14,6 +14,8 @@ class Main:
         self.config = json.load(open("config.json"))
         if "mutedUsers" not in self.config:
             self.config["mutedUsers"] = {}
+        if "restrictions" not in self.config:
+            self.config["restrictions"] = True
 
     def saveConfig(self):
         json.dump(self.config, fp=open("config.json", "w"), indent=4)
@@ -39,17 +41,29 @@ class Main:
                     self.eventHandler(event)
 
     def eventHandler(self, event):
-        self.restrictionsHandler(event)
+        if self.config["restrictions"]:
+            self.restrictionsHandler(event)
         self.cmdHandler(event)
         # NOTE: self.animebanHandler()...
 
     def cmdHandler(self, event):
         if hasattr(event, "text"):
             if event.from_me:
+                self.restrictionSwitchHandler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
                 self.helpHandler(event)
                 # NOTE: self.unmuteHandler(event)...
+
+    def restrictionSwitchHandler(self, event):
+        text = event.text.split(" ")
+        if text[0] in ("!вкл", "!он", "!on", "!включить"):
+            self.config["restrictions"] = True
+            self.sendme(event, "Ограничения включены.")
+        elif text[0] in ("!выкл", "!офф", "!оф", "!off", "!выключить"):
+            self.config["restrictions"] = False
+            self.sendme(event, "Ограничения выключены.")
+        self.saveConfig()
 
     def muteHandler(self, event):
         text = event.text.split(" ")
@@ -136,6 +150,8 @@ class Main:
         text.append("Команды:")
         text.append("   !мут (!молчи, !помолчи, !молчать, !терпи, !потерпи, !завали, !заткнись) - мут")
         text.append("   !анмут (!размут) - анмут")
+        text.append("   !включить (!вкл, !on, !он) - включить ограничения")
+        text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
 
