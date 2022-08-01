@@ -68,7 +68,8 @@ class Main:
     def muteHandler(self, event):
         text = event.text.split(" ")
         if text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
-                       "!терпи", "!потерпи", "!завали", "!заткнись"):
+                       "!терпи", "!потерпи", "!завали", "!заткнись",
+                       "!mute", "!mut"):
             if len(text)>1:
                 chat_id = str(event.chat_id)
                 user_id, user_name = self.getmentioninfo(event)
@@ -80,7 +81,6 @@ class Main:
                 else:
                     text.append(-1)
                     time = text[2]
-                print(self.config["mutedUsers"])
                 if chat_id not in self.config["mutedUsers"]: self.config["mutedUsers"][chat_id] = {}
                 self.config["mutedUsers"][chat_id][user_id] = {"time": text[2]}
                 self.saveConfig()
@@ -90,8 +90,8 @@ class Main:
 
     def unMuteHandler(self, event):
         text = event.text.split(" ")
-        if text[0] in ("!размут", "!анмут"):
-            chat_id = event.chat_id
+        if text[0] in ("!размут", "!анмут", "!unmute", "!unmut"):
+            chat_id = str(event.chat_id)
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
                 if chat_id in self.config["mutedUsers"]:
@@ -113,8 +113,8 @@ class Main:
         self.mutedUserHandler(event)
 
     def mutedUserHandler(self, event):
-        chat_id = event.chat_id
-        user_id = event.user_id
+        chat_id = str(event.chat_id)
+        user_id = str(event.user_id)
         if chat_id in self.config["mutedUsers"]:
             chat = self.config["mutedUsers"][chat_id]
             if user_id in chat:
@@ -129,6 +129,7 @@ class Main:
         cur = int(time.time())
         num = re.findall(r"\d+", st)[0]
         st = st.removeprefix(num)
+        num = int(num)
         if st in ("м","мин"):
             num *= 60
         elif st=="ч":
@@ -140,7 +141,7 @@ class Main:
     @staticmethod
     def getmentioninfo(event):
         splitted = event.text.split(" ")[1].split("|")
-        user_id = int(splitted[0].removeprefix("[id"))
+        user_id = splitted[0].removeprefix("[id")
         user_name = splitted[1].removesuffix("]")
         return user_id, user_name
 
@@ -148,8 +149,8 @@ class Main:
         text = []
         text.append(f"VKPlus v{self.version} (github.com/mrtnvgr/vkplus)")
         text.append("Команды:")
-        text.append("   !мут (!молчи, !помолчи, !молчать, !терпи, !потерпи, !завали, !заткнись) - мут")
-        text.append("   !анмут (!размут) - анмут")
+        text.append("   !мут (!молчи, !помолчи, !молчать, !терпи, !потерпи, !завали, !заткнись, !mute, !mut) - мут")
+        text.append("   !анмут (!размут, !unmute, !unmut) - анмут")
         text.append("   !включить (!вкл, !on, !он) - включить ограничения")
         text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
