@@ -16,6 +16,8 @@ class Main:
             self.config["mutedUsers"] = {}
         if "restrictions" not in self.config:
             self.config["restrictions"] = True
+        if "silent" not in self.config:
+            self.config["silent"] = False
 
     def saveConfig(self):
         json.dump(self.config, fp=open("config.json", "w"), indent=4)
@@ -25,14 +27,18 @@ class Main:
         self.longpoll = VkLongPoll(self.vk)
 
     def sendreply(self, event, text, reply=True):
-        payload = {"chat_id": event.chat_id, "random_id": get_random_id(), "message": text}
-        if reply:
-            payload["reply_to"] = event.message_id
-        self.method("messages.send", payload)
+        if not self.config["silent"]:
+            payload = {"chat_id": event.chat_id, "random_id": get_random_id(), "message": text}
+            if reply:
+                payload["reply_to"] = event.message_id
+            self.method("messages.send", payload)
 
     def sendme(self, event, text):
         payload = {"user_id": event.user_id, "random_id": get_random_id(), "message": text}
         self.method("messages.send", payload)
+
+    def deleteMessage(self, message_id):
+        self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
 
     def listen(self):
         for event in self.longpoll.listen():
@@ -49,7 +55,10 @@ class Main:
     def cmdHandler(self, event):
         if hasattr(event, "text"):
             if event.from_me:
+                if self.config["silent"]:
+                    self.deleteMessage(event.message_id)
                 self.restrictionSwitchHandler(event)
+                self.silentSwitchHandler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
                 self.helpHandler(event)
@@ -63,6 +72,15 @@ class Main:
         elif text[0] in ("!выкл", "!офф", "!оф", "!off", "!выключить"):
             self.config["restrictions"] = False
             self.sendme(event, "Ограничения выключены.")
+        self.saveConfig()
+
+    def silentSwitchHandler(self, event):
+        text = event.text.split(" ")
+        if text[0] in ("!silent", "!сайлент", "!тихо"):
+            self.config["silent"] = True
+            self.deleteMessage(event.message_id)
+        elif text[0] in ("!unsilent", "!ансайлент", "!громко"):
+            self.config["silent"] = False
         self.saveConfig()
 
     def muteHandler(self, event):
@@ -99,9 +117,10 @@ class Main:
                         self.sendreply(event, f"{user_name} размучен.")
                         self.saveConfig()
             else:
-                self.config["mutedUsers"].pop(chat_id)
-                self.saveConfig()
-                self.sendreply(event, "Все размучены.")
+                if chat_id in self.config["mutedUsers"]:
+                    self.config["mutedUsers"].pop(chat_id)
+                    self.saveConfig()
+                    self.sendreply(event, "Все размучены.")
 
     def helpHandler(self, event):
         text = event.text.split(" ")
@@ -121,7 +140,7 @@ class Main:
                 if (int(time.time())>=user["time"] and user["time"]!=-1) and not chat.get("muteAll", False):
                     chat.pop(user_id)
                 else:
-                    self.method("messages.delete", {"message_ids": event.message_id, "delete_for_all": 1})
+                    self.deleteMessage(event.message_id)
 
     @staticmethod
     def gettime(st):
@@ -152,6 +171,8 @@ class Main:
         text.append("   !анмут (!размут, !unmute, !unmut) - анмут")
         text.append("   !включить (!вкл, !on, !он) - включить ограничения")
         text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
+        text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
+        text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
 
@@ -159,7 +180,7 @@ class Main:
         try:
             self.vk.method(*args, **kwargs)
         except vk_api.exceptions.ApiError as error:
-            if error.code not in (11, 15, 100): # cannot reply to message
+            if error.code not in (11, 15, 100, 5):
                 print(error)
 
 if __name__=="__main__":
