@@ -36,7 +36,7 @@ class Main:
 
     def listen(self):
         for event in self.longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW: # TODO: message edit
+            if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
                 if event.from_chat:
                     self.eventHandler(event)
 
@@ -70,23 +70,22 @@ class Main:
         if text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
                        "!терпи", "!потерпи", "!завали", "!заткнись",
                        "!mute", "!mut"):
+            chat_id = str(event.chat_id)
+            if chat_id not in self.config["mutedUsers"]: self.config["mutedUsers"][chat_id] = {}
             if len(text)>1:
-                chat_id = str(event.chat_id)
                 user_id, user_name = self.getmentioninfo(event)
                 # NOTE: implement mute all
-                # TODO: make independent function for getting user_id and user_name
                 if len(text)==3:
                     time = text[2]
                     text[2] = self.gettime(text[2])
                 else:
                     text.append(-1)
                     time = text[2]
-                if chat_id not in self.config["mutedUsers"]: self.config["mutedUsers"][chat_id] = {}
                 self.config["mutedUsers"][chat_id][user_id] = {"time": text[2]}
                 self.saveConfig()
                 self.sendreply(event, f"{user_name} замучен на {time}.")
             else:
-                pass # TODO: all
+                self.config["mutedUsers"][chat_id]["muteAll"] = True
 
     def unMuteHandler(self, event):
         text = event.text.split(" ")
@@ -117,9 +116,9 @@ class Main:
         user_id = str(event.user_id)
         if chat_id in self.config["mutedUsers"]:
             chat = self.config["mutedUsers"][chat_id]
-            if user_id in chat:
-                user = chat[user_id]
-                if int(time.time())>=user["time"] and user["time"]!=-1:
+            if user_id in chat or "muteAll" in chat:
+                user = chat.get(user_id, {"time":-1})
+                if (int(time.time())>=user["time"] and user["time"]!=-1) and not chat.get("muteAll", False):
                     chat.pop(user_id)
                 else:
                     self.method("messages.delete", {"message_ids": event.message_id, "delete_for_all": 1})
