@@ -12,8 +12,8 @@ class Main:
 
     def reloadConfig(self):
         self.config = json.load(open("config.json"))
-        if "mutedUsers" not in self.config:
-            self.config["mutedUsers"] = {}
+        if "users" not in self.config:
+            self.config["users"] = {}
         if "restrictions" not in self.config:
             self.config["restrictions"] = True
         if "silent" not in self.config:
@@ -89,7 +89,7 @@ class Main:
                        "!терпи", "!потерпи", "!завали", "!заткнись",
                        "!mute", "!mut"):
             chat_id = str(event.chat_id)
-            if chat_id not in self.config["mutedUsers"]: self.config["mutedUsers"][chat_id] = {}
+            if chat_id not in self.config["users"]: self.config["users"][chat_id] = {}
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
                 # NOTE: implement mute all
@@ -99,11 +99,11 @@ class Main:
                 else:
                     text.append(-1)
                     time = text[2]
-                self.config["mutedUsers"][chat_id][user_id] = {"time": text[2]}
+                self.config["users"][chat_id][user_id] = {"time": text[2]}
                 self.saveConfig()
                 self.sendreply(event, f"{user_name} замучен на {time}.")
             else:
-                self.config["mutedUsers"][chat_id]["muteAll"] = True
+                self.config["users"][chat_id]["muteAll"] = True
 
     def unMuteHandler(self, event):
         text = event.text.split(" ")
@@ -111,14 +111,14 @@ class Main:
             chat_id = str(event.chat_id)
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
-                if chat_id in self.config["mutedUsers"]:
-                    if user_id in self.config["mutedUsers"][chat_id]:
-                        self.config["mutedUsers"][chat_id].pop(user_id)
+                if chat_id in self.config["users"]:
+                    if user_id in self.config["users"][chat_id]:
+                        self.config["users"][chat_id].pop(user_id)
                         self.sendreply(event, f"{user_name} размучен.")
                         self.saveConfig()
             else:
-                if chat_id in self.config["mutedUsers"]:
-                    self.config["mutedUsers"].pop(chat_id)
+                if chat_id in self.config["users"]:
+                    self.config["users"].pop(chat_id)
                     self.saveConfig()
                     self.sendreply(event, "Все размучены.")
 
@@ -133,8 +133,8 @@ class Main:
     def mutedUserHandler(self, event):
         chat_id = str(event.chat_id)
         user_id = str(event.user_id)
-        if chat_id in self.config["mutedUsers"]:
-            chat = self.config["mutedUsers"][chat_id]
+        if chat_id in self.config["users"]:
+            chat = self.config["users"][chat_id]
             if user_id in chat or "muteAll" in chat:
                 user = chat.get(user_id, {"time":-1})
                 if (int(time.time())>=user["time"] and user["time"]!=-1) and not chat.get("muteAll", False):
@@ -173,6 +173,7 @@ class Main:
         text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
         text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
         text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
+        text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
 
