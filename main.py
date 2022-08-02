@@ -44,6 +44,9 @@ class Main:
 
     def deleteMessage(self, message_id):
         self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
+    
+    def getUser(self, user_id):
+        return self.method("users.get", {"user_ids": user_id})
 
     def listen(self):
         for event in self.longpoll.listen():
@@ -64,6 +67,7 @@ class Main:
                 self.silentSwitchHandler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
+                self.statusHandler(event)
                 self.helpHandler(event)
                 # NOTE: self.unmuteHandler(event)...
 
@@ -107,6 +111,7 @@ class Main:
                 self.sendreply(event, f"{user_name} замучен на {time}.")
             else:
                 self.config["users"][chat_id]["muteAll"] = True
+                self.deleteMessage(event.message_id)
 
     def unMuteHandler(self, event):
         text = event.text.split(" ")
@@ -129,6 +134,11 @@ class Main:
         text = event.text.split(" ")
         if text[0] in ("!хелп", "!help", "!помощь", "!справка"):
             self.sendme(event, self.gethelptext())
+
+    def statusHandler(self, event):
+        text = event.text.split(" ")
+        if text[0] in ("!status", "!статус"):
+            self.sendme(event, self.getstatusinfo(event))
 
     def restrictionsHandler(self, event):
         self.mutedUserHandler(event)
@@ -177,12 +187,28 @@ class Main:
         text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
         text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
         text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
+        text.append("   !статус (!status) - статус свитчей")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
+        return "\n".join(text)
+
+    def getstatusinfo(self, event):
+        chat_id = str(event.chat_id)
+        text = []
+        text.append(f"Restrictions: {self.config['restrictions']}")
+        text.append(f"Silent mode: {self.config['silent']}")
+        if chat_id in self.config["users"]:
+            text.append(f"Muted users: ")
+            if "muteAll" in self.config["users"][chat_id]:
+                text[-1] = text[-1] + "all"
+            else:
+                for user in self.config['users'][chat_id]:
+                    user_data = self.getUser(user)[0]
+                    text[-1] = f"{text[-1]}{user_data['first_name']} {user_data['last_name']}"
         return "\n".join(text)
 
     def method(self, *args, **kwargs):
         try:
-            self.vk.method(*args, **kwargs)
+            return self.vk.method(*args, **kwargs)
         except vk_api.exceptions.ApiError as error:
             if error.code not in (11, 15, 100, 5):
                 print(error)
