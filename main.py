@@ -18,6 +18,7 @@ class Main:
             self.config["restrictions"] = True
         if "silent" not in self.config:
             self.config["silent"] = False
+        self.saveConfig()
 
     def saveConfig(self):
         json.dump(self.config, fp=open("config.json", "w"), indent=4)
@@ -32,8 +33,12 @@ class Main:
             if reply:
                 payload["reply_to"] = event.message_id
             self.method("messages.send", payload)
+        else:
+            self.deleteMessage(event.message_id)
 
     def sendme(self, event, text):
+        if self.config["silent"]:
+            self.deleteMessage(event.message_id)
         payload = {"user_id": event.user_id, "random_id": get_random_id(), "message": text}
         self.method("messages.send", payload)
 
@@ -55,8 +60,6 @@ class Main:
     def cmdHandler(self, event):
         if hasattr(event, "text"):
             if event.from_me:
-                if self.config["silent"]:
-                    self.deleteMessage(event.message_id)
                 self.restrictionSwitchHandler(event)
                 self.silentSwitchHandler(event)
                 self.muteHandler(event)
