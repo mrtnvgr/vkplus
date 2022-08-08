@@ -5,7 +5,7 @@ import vk_api, json, time, re
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-1"
+        self.version = "0.0.0-2"
         self.reloadConfig()
         self.initVkApi()
         self.listen()
@@ -75,20 +75,22 @@ class Main:
         text = event.text.split(" ")
         if text[0] in ("!вкл", "!он", "!on", "!включить"):
             self.config["restrictions"] = True
+            self.saveConfig()
             self.sendme(event, "Ограничения включены.")
         elif text[0] in ("!выкл", "!офф", "!оф", "!off", "!выключить"):
             self.config["restrictions"] = False
+            self.saveConfig()
             self.sendme(event, "Ограничения выключены.")
-        self.saveConfig()
 
     def silentSwitchHandler(self, event):
         text = event.text.split(" ")
         if text[0] in ("!silent", "!сайлент", "!тихо"):
             self.config["silent"] = True
+            self.saveConfig()
             self.deleteMessage(event.message_id)
         elif text[0] in ("!unsilent", "!ансайлент", "!громко"):
             self.config["silent"] = False
-        self.saveConfig()
+            self.saveConfig()
 
     def muteHandler(self, event):
         text = event.text.split(" ")
@@ -96,22 +98,26 @@ class Main:
                        "!терпи", "!потерпи", "!завали", "!заткнись",
                        "!mute", "!mut"):
             chat_id = str(event.chat_id)
-            if chat_id not in self.config["users"]: self.config["users"][chat_id] = {}
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
-                # NOTE: implement mute all
                 if len(text)==3:
                     time = text[2]
                     text[2] = self.gettime(text[2])
                 else:
                     text.append(-1)
                     time = text[2]
-                self.config["users"][chat_id][user_id] = {"time": text[2]}
-                self.saveConfig()
-                self.sendreply(event, f"{user_name} замучен на {time}.")
-            else:
-                self.config["users"][chat_id]["muteAll"] = True
-                self.deleteMessage(event.message_id)
+                if user_name!="$all":
+                    if f"{chat_id}|{user_id}" not in self.config["users"]:
+                        self.config["users"][f"{chat_id}|{user_id}"] = {}
+                    self.config["users"][f"{chat_id}|{user_id}"]["mute"] = {"time": text[2]}
+                    self.saveConfig()
+                    self.sendreply(event, f"{user_name} замучен на {time}.")
+                else:
+                    if chat_id not in self.config["users"]:
+                        self.config["users"][chat_id] = {}
+                    self.config["users"][chat_id]["mute"] = {"time": text[2]}
+                    self.saveConfig()
+                    self.sendreply(event, f"Все замучены на {time}.")
 
     def unMuteHandler(self, event):
         text = event.text.split(" ")
@@ -119,16 +125,20 @@ class Main:
             chat_id = str(event.chat_id)
             if len(text)>1:
                 user_id, user_name = self.getmentioninfo(event)
-                if chat_id in self.config["users"]:
-                    if user_id in self.config["users"][chat_id]:
-                        self.config["users"][chat_id].pop(user_id)
+                if user_name!="$all":
+                    if f"{chat_id}|{user_id}" in self.config["users"]:
+                        self.config["users"][f"{chat_id}|{user_id}"].pop("mute")
                         self.sendreply(event, f"{user_name} размучен.")
                         self.saveConfig()
-            else:
-                if chat_id in self.config["users"]:
-                    self.config["users"].pop(chat_id)
-                    self.saveConfig()
-                    self.sendreply(event, "Все размучены.")
+                        return
+            if chat_id in self.config["users"]:
+                if "mute" in self.config["users"][chat_id]:
+                    self.config["users"][chat_id].pop("mute")
+            for user in self.config["users"]:
+                if user.split("|")[0]==chat_id:
+                    self.config["users"][user].pop("mute")
+            self.saveConfig()
+            self.sendreply(event, "Все размучены.")
 
     def helpHandler(self, event):
         text = event.text.split(" ")
@@ -146,14 +156,19 @@ class Main:
     def mutedUserHandler(self, event):
         chat_id = str(event.chat_id)
         user_id = str(event.user_id)
-        if chat_id in self.config["users"]:
-            chat = self.config["users"][chat_id]
-            if user_id in chat or "muteAll" in chat:
-                user = chat.get(user_id, {"time":-1})
-                if (int(time.time())>=user["time"] and user["time"]!=-1) and not chat.get("muteAll", False):
-                    chat.pop(user_id)
-                else:
-                    self.deleteMessage(event.message_id)
+
+        user = None
+        if f"{chat_id}|{user_id}" in self.config["users"]:
+            user = self.config["users"][f"{chat_id}|{user_id}"]
+        elif chat_id in self.config["users"]:
+            user = self.config["users"][chat_id]
+        if user!=None:
+            if "mute" in user:
+                if "time" in user["mute"]:
+                    if int(time.time())>=user["mute"]["time"]:
+                        self.deleteMessage(event.message_id)
+                    else:
+                        user.pop("mute")
 
     @staticmethod
     def gettime(st):
@@ -171,10 +186,16 @@ class Main:
 
     @staticmethod
     def getmentioninfo(event):
-        splitted = event.text.split(" ")[1].split("|")
-        user_id = splitted[0].removeprefix("[id")
-        user_name = splitted[1].removesuffix("]")
-        return user_id, user_name
+        try:
+            splitted = event.text.split(" ")[1].split("|")
+            user_id = splitted[0].removeprefix("[id")
+            user_name = splitted[1].removesuffix("]")
+            return user_id, user_name
+        except:
+            for var in ("@all", "@все", "@everyone"):
+                if var in event.text:
+                    return None, "$all"
+            return None, None
 
     def gethelptext(self):
         text = []
@@ -196,13 +217,17 @@ class Main:
         text = []
         text.append(f"Restrictions: {self.config['restrictions']}")
         text.append(f"Silent mode: {self.config['silent']}")
+        text.append(f"Muted users: ")
         if chat_id in self.config["users"]:
-            text.append(f"Muted users: ")
-            if "muteAll" in self.config["users"][chat_id]:
+            if "mute" in self.config["users"][chat_id]:
                 text[-1] = text[-1] + "all"
-            else:
-                for user in self.config['users'][chat_id]:
+        else:
+            for elem in self.config["users"]:
+                if chat_id in elem: # TODO: add time (сколько еще осталось bantime-curtime/60 минут)
+                    user = elem.split("|")[1]
                     user_data = self.getUser(user)[0]
+                    if text[-1]!="Muted users: ":
+                        text[-1] += ","
                     text[-1] = f"{text[-1]}{user_data['first_name']} {user_data['last_name']}"
         return "\n".join(text)
 
