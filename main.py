@@ -62,7 +62,7 @@ class Main:
 
     def sendreply(self, event, text, attachment=[], reply=True):
         if not self.config["silent"]:
-            payload = {"chat_id": event.chat_id, "random_id": get_random_id(), "message": text, "attachment": ",".join(attachment)}
+            payload = {"peer_id": event.peer_id, "random_id": get_random_id(), "message": text, "attachment": ",".join(attachment)}
             if reply:
                 payload["reply_to"] = event.message_id
             self.method("messages.send", payload)
@@ -111,6 +111,7 @@ class Main:
             
         if self.photos==[]:
             self.photos_page += 1
+            params["page"] = self.photos_page
             response = requests.Session().get(url, params=params).json()
             self.photos = response["data"]
         photo = choice(self.photos)
@@ -126,28 +127,30 @@ class Main:
     def listen(self):
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
-                if event.from_chat:
-                    self.eventHandler(event)
+                self.eventHandler(event)
 
     def eventHandler(self, event):
         if hasattr(event, "text"):
             event.text = list(shlex.split(event.text.replace("&quot;",'"')))
-        if self.config["restrictions"]:
-            self.restrictionsHandler(event)
-        self.cmdHandler(event)
+        if event.from_chat:
+            if self.config["restrictions"]:
+                self.restrictionsHandler(event)
+        if event.from_chat or event.from_user:
+            self.cmdHandler(event)
         # NOTE: self.animebanHandler()...
 
     def cmdHandler(self, event):
         if hasattr(event, "text"):
-            if event.from_me:
-                self.restrictionSwitchHandler(event)
-                self.silentSwitchHandler(event)
-                self.muteHandler(event)
-                self.unMuteHandler(event)
-                self.statusHandler(event)
-                self.helpHandler(event)
-            if event.user_id in self.config["perms"]["pics"] or event.from_me:
-                self.picsHandler(event)
+            if event.text!=[]:
+                if event.from_me:
+                    self.restrictionSwitchHandler(event)
+                    self.silentSwitchHandler(event)
+                    self.muteHandler(event)
+                    self.unMuteHandler(event)
+                    self.statusHandler(event)
+                    self.helpHandler(event)
+                if event.user_id in self.config["perms"]["pics"] or event.from_me:
+                    self.picsHandler(event)
 
     def restrictionSwitchHandler(self, event):
         if event.text[0] in ("!вкл", "!он", "!on", "!включить"):
@@ -172,7 +175,7 @@ class Main:
         if event.text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
                        "!терпи", "!потерпи", "!завали", "!заткнись",
                        "!mute", "!mut"):
-            chat_id = str(event.chat_id)
+            peer_id = str(event.peer_id)
             if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
                 if len(event.text)==3:
@@ -182,34 +185,34 @@ class Main:
                     event.text.append(-1)
                     time = event.text[2]
                 if user_name!="$all":
-                    if f"{chat_id}|{user_id}" not in self.config["users"]:
-                        self.config["users"][f"{chat_id}|{user_id}"] = {}
-                    self.config["users"][f"{chat_id}|{user_id}"]["mute"] = {"time": event.text[2]}
+                    if f"{peer_id}|{user_id}" not in self.config["users"]:
+                        self.config["users"][f"{peer_id}|{user_id}"] = {}
+                    self.config["users"][f"{peer_id}|{user_id}"]["mute"] = {"time": event.text[2]}
                     self.saveConfig()
                     self.sendreply(event, f"{user_name} замучен на {time}.")
                 else:
-                    if chat_id not in self.config["users"]:
-                        self.config["users"][chat_id] = {}
-                    self.config["users"][chat_id]["mute"] = {"time": event.text[2]}
+                    if peer_id not in self.config["users"]:
+                        self.config["users"][peer_id] = {}
+                    self.config["users"][peer_id]["mute"] = {"time": event.text[2]}
                     self.saveConfig()
                     self.sendreply(event, f"Все замучены на {time}.")
 
     def unMuteHandler(self, event):
         if event.text[0] in ("!размут", "!анмут", "!unmute", "!unmut"):
-            chat_id = str(event.chat_id)
+            peer_id = str(event.peer_id)
             if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
                 if user_name!="$all":
-                    if f"{chat_id}|{user_id}" in self.config["users"]:
-                        self.config["users"][f"{chat_id}|{user_id}"].pop("mute")
+                    if f"{peer_id}|{user_id}" in self.config["users"]:
+                        self.config["users"][f"{peer_id}|{user_id}"].pop("mute")
                         self.sendreply(event, f"{user_name} размучен.")
                         self.saveConfig()
                         return
-            if chat_id in self.config["users"]:
-                if "mute" in self.config["users"][chat_id]:
-                    self.config["users"][chat_id].pop("mute")
+            if peer_id in self.config["users"]:
+                if "mute" in self.config["users"][peer_id]:
+                    self.config["users"][peer_id].pop("mute")
             for user in self.config["users"]:
-                if user.split("|")[0]==chat_id:
+                if user.split("|")[0]==peer_id:
                     self.config["users"][user].pop("mute")
             self.saveConfig()
             self.sendreply(event, "Все размучены.")
@@ -223,7 +226,7 @@ class Main:
             self.sendme(event, self.getstatusinfo(event))
 
     def picsHandler(self, event):
-        if event.text[0] in ("!картиночки", "!картинки", "!картиночка", "!картинка", "!pic", "!пикча"):
+        if event.text[0] in ("!картиночки", "!картинки", "!картиночка", "!картинка", "!pic", "!пикча", "!пик"):
             if len(event.text)>1 and (event.user_id in self.config["perms"]["customPics"] or event.from_me):
                 if len(event.text)>2:
                     purity = event.text[2]
@@ -242,14 +245,14 @@ class Main:
         self.mutedUserHandler(event)
 
     def mutedUserHandler(self, event):
-        chat_id = str(event.chat_id)
+        peer_id = str(event.peer_id)
         user_id = str(event.user_id)
 
         user = None
-        if f"{chat_id}|{user_id}" in self.config["users"]:
-            user = self.config["users"][f"{chat_id}|{user_id}"]
-        elif chat_id in self.config["users"]:
-            user = self.config["users"][chat_id]
+        if f"{peer_id}|{user_id}" in self.config["users"]:
+            user = self.config["users"][f"{peer_id}|{user_id}"]
+        elif peer_id in self.config["users"]:
+            user = self.config["users"][peer_id]
         if user!=None:
             if "mute" in user:
                 if "time" in user["mute"]:
@@ -295,24 +298,24 @@ class Main:
         text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
         text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
         text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
-        text.append("   !pic (!пикча, !картиночка, !картиночки, !картинка, !картинки) - картинки")
+        text.append("   !pic (!пик, !пикча, !картиночка, !картиночки, !картинка, !картинки) - картинки")
         #TODO: text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
         text.append("   !статус (!status) - статус свитчей")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
 
     def getstatusinfo(self, event):
-        chat_id = str(event.chat_id)
+        peer_id = str(event.peer_id)
         text = []
         text.append(f"Restrictions: {self.config['restrictions']}")
         text.append(f"Silent mode: {self.config['silent']}")
         text.append(f"Muted users: ")
-        if chat_id in self.config["users"]:
-            if "mute" in self.config["users"][chat_id]:
+        if peer_id in self.config["users"]:
+            if "mute" in self.config["users"][peer_id]:
                 text[-1] = text[-1] + "all"
         else:
             for elem in self.config["users"]:
-                if chat_id in elem: # TODO: add time (сколько еще осталось bantime-curtime/60 минут)
+                if peer_id in elem: # TODO: add time (сколько еще осталось bantime-curtime/60 минут)
                     user = elem.split("|")[1]
                     user_data = self.getUser(user)[0]
                     if text[-1]!="Muted users: ":
