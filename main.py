@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
-import vk_api, json, time, re
+import vk_api, json, time, re, shlex
 from random import choice
 import requests
 
@@ -26,15 +26,26 @@ class Main:
             self.config["restrictions"] = True
         if "silent" not in self.config:
             self.config["silent"] = False
-        if "photos_query" not in self.config:
-            self.config["photos_query"] = ""
+
+        if "photos" not in self.config:
+            self.config["photos"] = {}
+        if "token" not in self.config["photos"]:
+            self.config["photos"]["token"] = ""
+        if "query" not in self.config["photos"]:
+            self.config["photos"]["query"] = ""
+        if "categories" not in self.config["photos"]:
+            self.config["photos"]["categories"] = "010"
+        if "purity" not in self.config["photos"]:
+            self.config["photos"]["purity"] = "100"
         self.checkPermsHealth()
 
     def checkPermsHealth(self):
         if "perms" not in self.config:
             self.config["perms"] = {}
         if "pics" not in self.config["perms"]:
-            self.config["perms"]["pics"] = ["p13d3z"]
+            self.config["perms"]["pics"] = []
+        if "customPics" not in self.config["perms"]:
+            self.config["perms"]["customPics"] = []
 
         for perm in self.config["perms"]:
             for i,elem in enumerate(self.config["perms"][perm]):
@@ -68,7 +79,7 @@ class Main:
         session = requests.Session()
         server = self.method("photos.getMessagesUploadServer", {})["upload_url"]
         photo = self.getUrlContent(url)
-        response = session.post(server, files={"photo": (photo["name"], photo["content"])}).json() # TODO: many photos from internet
+        response = session.post(server, files={"photo": (photo["name"], photo["content"])}).json()
         attachment = self.method("photos.saveMessagesPhoto", response)[0]
         return attachment
 
@@ -77,11 +88,30 @@ class Main:
         name = response.url.split("/")[-1].split("?")[0]
         return {"name": name, "content": response.content}
 
-    def getPhotoUrl(self):
+    def getPhotoUrl(self, q=None, purity=None):
+        params = {"q": self.config["photos"]["query"], "categories": self.config["photos"]["categories"], 
+                  "purity": self.config["photos"]["purity"], "sorting": "relevance", 
+                  "seed": abs(get_random_id()), "page": self.photos_page}
+
+        url = "https://wallhaven.cc/api/v1/search"
+        if self.config["photos"]["token"]:
+            url += f"?apikey={self.config['photos']['token']}"
+
+        if q!=None or purity!=None:
+            if q!=None:
+                params["q"] = q
+            if purity!=None:
+                params["purity"] = purity
+            params["page"] = 1
+            response = requests.Session().get(url, params=params).json()
+            if response["data"]!=[]:
+                return choice(response["data"])["path"]
+            else:
+                return None
+            
         if self.photos==[]:
             self.photos_page += 1
-            params = {"q": self.config["photos_query"], "categories": "010", "purity": "100", "ratios": "9x16,10x16,9x18", "sorting": "toplist", "seed": abs(get_random_id()), "page": self.photos_page}
-            response = requests.Session().get("https://wallhaven.cc/api/v1/search", params=params).json()
+            response = requests.Session().get(url, params=params).json()
             self.photos = response["data"]
         photo = choice(self.photos)
         self.photos.remove(photo)
@@ -101,7 +131,7 @@ class Main:
 
     def eventHandler(self, event):
         if hasattr(event, "text"):
-            event.text = event.text.split(" ")
+            event.text = list(shlex.split(event.text.replace("&quot;",'"')))
         if self.config["restrictions"]:
             self.restrictionsHandler(event)
         self.cmdHandler(event)
@@ -116,7 +146,7 @@ class Main:
                 self.unMuteHandler(event)
                 self.statusHandler(event)
                 self.helpHandler(event)
-            if event.user_id in self.config["perms"]["pics"] or event.from_me: # TODO
+            if event.user_id in self.config["perms"]["pics"] or event.from_me:
                 self.picsHandler(event)
 
     def restrictionSwitchHandler(self, event):
@@ -194,9 +224,19 @@ class Main:
 
     def picsHandler(self, event):
         if event.text[0] in ("!картиночки", "!картинки", "!картиночка", "!картинка", "!pic", "!пикча"):
-            photo_url = self.getPhotoUrl()
-            attachment = self.uploadPhoto(photo_url)
-            self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
+            if len(event.text)>1 and (event.user_id in self.config["perms"]["customPics"] or event.from_me):
+                if len(event.text)>2:
+                    purity = event.text[2]
+                else:
+                    purity = None
+                photo_url = self.getPhotoUrl(q=event.text[1], purity=purity)
+            else:
+                photo_url = self.getPhotoUrl()
+            if photo_url!=None:
+                attachment = self.uploadPhoto(photo_url)
+                self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
+            else:
+                self.sendreply(event, "Нету такого.")
 
     def restrictionsHandler(self, event):
         self.mutedUserHandler(event)
