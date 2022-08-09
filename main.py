@@ -2,23 +2,45 @@
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
 import vk_api, json, time, re
+from random import choice
+import requests
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-2"
-        self.reloadConfig()
-        self.initVkApi()
+        self.version = "0.0.0-3"
+        self.reload()
         self.listen()
 
-    def reloadConfig(self):
+    def reload(self):
         self.config = json.load(open("config.json"))
+        self.photos = []
+        self.photos_page = 0
+        self.initVkApi()
+        self.checkConfigHealth()
+        self.saveConfig()
+
+    def checkConfigHealth(self):
         if "users" not in self.config:
             self.config["users"] = {}
         if "restrictions" not in self.config:
             self.config["restrictions"] = True
         if "silent" not in self.config:
             self.config["silent"] = False
-        self.saveConfig()
+        if "photos_query" not in self.config:
+            self.config["photos_query"] = ""
+        self.checkPermsHealth()
+
+    def checkPermsHealth(self):
+        if "perms" not in self.config:
+            self.config["perms"] = {}
+        if "pics" not in self.config["perms"]:
+            self.config["perms"]["pics"] = ["p13d3z"]
+
+        for perm in self.config["perms"]:
+            for i,elem in enumerate(self.config["perms"][perm]):
+                if type(elem) is str:
+                    self.config["perms"][perm][i] = self.getUser(elem)[0]["id"]
+                    
 
     def saveConfig(self):
         json.dump(self.config, fp=open("config.json", "w"), indent=4)
@@ -27,9 +49,9 @@ class Main:
         self.vk = vk_api.VkApi(token=self.config["token"])
         self.longpoll = VkLongPoll(self.vk)
 
-    def sendreply(self, event, text, reply=True):
+    def sendreply(self, event, text, attachment=[], reply=True):
         if not self.config["silent"]:
-            payload = {"chat_id": event.chat_id, "random_id": get_random_id(), "message": text}
+            payload = {"chat_id": event.chat_id, "random_id": get_random_id(), "message": text, "attachment": ",".join(attachment)}
             if reply:
                 payload["reply_to"] = event.message_id
             self.method("messages.send", payload)
@@ -41,6 +63,29 @@ class Main:
             self.deleteMessage(event.message_id)
         payload = {"user_id": event.user_id, "random_id": get_random_id(), "message": text}
         self.method("messages.send", payload)
+
+    def uploadPhoto(self, url):
+        session = requests.Session()
+        server = self.method("photos.getMessagesUploadServer", {})["upload_url"]
+        photo = self.getUrlContent(url)
+        response = session.post(server, files={"photo": (photo["name"], photo["content"])}).json() # TODO: many photos from internet
+        attachment = self.method("photos.saveMessagesPhoto", response)[0]
+        return attachment
+
+    def getUrlContent(self, url):
+        response = requests.Session().get(url)
+        name = response.url.split("/")[-1].split("?")[0]
+        return {"name": name, "content": response.content}
+
+    def getPhotoUrl(self):
+        if self.photos==[]:
+            self.photos_page += 1
+            params = {"q": self.config["photos_query"], "categories": "010", "purity": "100", "ratios": "9x16,10x16,9x18", "sorting": "toplist", "seed": abs(get_random_id()), "page": self.photos_page}
+            response = requests.Session().get("https://wallhaven.cc/api/v1/search", params=params).json()
+            self.photos = response["data"]
+        photo = choice(self.photos)
+        self.photos.remove(photo)
+        return photo["path"]
 
     def deleteMessage(self, message_id):
         self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
@@ -55,6 +100,8 @@ class Main:
                     self.eventHandler(event)
 
     def eventHandler(self, event):
+        if hasattr(event, "text"):
+            event.text = event.text.split(" ")
         if self.config["restrictions"]:
             self.restrictionsHandler(event)
         self.cmdHandler(event)
@@ -69,61 +116,58 @@ class Main:
                 self.unMuteHandler(event)
                 self.statusHandler(event)
                 self.helpHandler(event)
-                # NOTE: self.unmuteHandler(event)...
+            if event.user_id in self.config["perms"]["pics"] or event.from_me: # TODO
+                self.picsHandler(event)
 
     def restrictionSwitchHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!вкл", "!он", "!on", "!включить"):
+        if event.text[0] in ("!вкл", "!он", "!on", "!включить"):
             self.config["restrictions"] = True
             self.saveConfig()
             self.sendme(event, "Ограничения включены.")
-        elif text[0] in ("!выкл", "!офф", "!оф", "!off", "!выключить"):
+        elif event.text[0] in ("!выкл", "!офф", "!оф", "!off", "!выключить"):
             self.config["restrictions"] = False
             self.saveConfig()
             self.sendme(event, "Ограничения выключены.")
 
     def silentSwitchHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!silent", "!сайлент", "!тихо"):
+        if event.text[0] in ("!silent", "!сайлент", "!тихо"):
             self.config["silent"] = True
             self.saveConfig()
             self.deleteMessage(event.message_id)
-        elif text[0] in ("!unsilent", "!ансайлент", "!громко"):
+        elif event.text[0] in ("!unsilent", "!ансайлент", "!громко"):
             self.config["silent"] = False
             self.saveConfig()
 
     def muteHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
+        if event.text[0] in ("!мут", "!молчи", "!помолчи", "!молчать",
                        "!терпи", "!потерпи", "!завали", "!заткнись",
                        "!mute", "!mut"):
             chat_id = str(event.chat_id)
-            if len(text)>1:
+            if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
-                if len(text)==3:
-                    time = text[2]
-                    text[2] = self.gettime(text[2])
+                if len(event.text)==3:
+                    time = event.text[2]
+                    event.text[2] = self.gettime(event.text[2])
                 else:
-                    text.append(-1)
-                    time = text[2]
+                    event.text.append(-1)
+                    time = event.text[2]
                 if user_name!="$all":
                     if f"{chat_id}|{user_id}" not in self.config["users"]:
                         self.config["users"][f"{chat_id}|{user_id}"] = {}
-                    self.config["users"][f"{chat_id}|{user_id}"]["mute"] = {"time": text[2]}
+                    self.config["users"][f"{chat_id}|{user_id}"]["mute"] = {"time": event.text[2]}
                     self.saveConfig()
                     self.sendreply(event, f"{user_name} замучен на {time}.")
                 else:
                     if chat_id not in self.config["users"]:
                         self.config["users"][chat_id] = {}
-                    self.config["users"][chat_id]["mute"] = {"time": text[2]}
+                    self.config["users"][chat_id]["mute"] = {"time": event.text[2]}
                     self.saveConfig()
                     self.sendreply(event, f"Все замучены на {time}.")
 
     def unMuteHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!размут", "!анмут", "!unmute", "!unmut"):
+        if event.text[0] in ("!размут", "!анмут", "!unmute", "!unmut"):
             chat_id = str(event.chat_id)
-            if len(text)>1:
+            if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
                 if user_name!="$all":
                     if f"{chat_id}|{user_id}" in self.config["users"]:
@@ -141,14 +185,18 @@ class Main:
             self.sendreply(event, "Все размучены.")
 
     def helpHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!хелп", "!help", "!помощь", "!справка"):
+        if event.text[0] in ("!хелп", "!help", "!помощь", "!справка"):
             self.sendme(event, self.gethelptext())
 
     def statusHandler(self, event):
-        text = event.text.split(" ")
-        if text[0] in ("!status", "!статус"):
+        if event.text[0] in ("!status", "!статус"):
             self.sendme(event, self.getstatusinfo(event))
+
+    def picsHandler(self, event):
+        if event.text[0] in ("!картиночки", "!картинки", "!картиночка", "!картинка", "!pic", "!пикча"):
+            photo_url = self.getPhotoUrl()
+            attachment = self.uploadPhoto(photo_url)
+            self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
 
     def restrictionsHandler(self, event):
         self.mutedUserHandler(event)
@@ -187,7 +235,7 @@ class Main:
     @staticmethod
     def getmentioninfo(event):
         try:
-            splitted = event.text.split(" ")[1].split("|")
+            splitted = event.text[1].split("|")
             user_id = splitted[0].removeprefix("[id")
             user_name = splitted[1].removesuffix("]")
             return user_id, user_name
@@ -207,7 +255,8 @@ class Main:
         text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
         text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
         text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
-        text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
+        text.append("   !pic (!пикча, !картиночка, !картиночки, !картинка, !картинки) - картинки")
+        #TODO: text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
         text.append("   !статус (!status) - статус свитчей")
         text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
@@ -235,8 +284,9 @@ class Main:
         try:
             return self.vk.method(*args, **kwargs)
         except vk_api.exceptions.ApiError as error:
-            if error.code not in (11, 15, 100, 5):
+            if error.code not in (11, 15, 5):
                 print(error)
+            return error.code
 
 if __name__=="__main__":
     Main()
