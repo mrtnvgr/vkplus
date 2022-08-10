@@ -88,7 +88,7 @@ class Main:
         name = response.url.split("/")[-1].split("?")[0]
         return {"name": name, "content": response.content}
 
-    def getPhotoUrl(self, q=None, purity=None):
+    def getPhotoUrl(self, q=None, purity=None, categories=None):
         params = {"q": self.config["photos"]["query"], "categories": self.config["photos"]["categories"], 
                   "purity": self.config["photos"]["purity"], "sorting": "relevance", 
                   "seed": abs(get_random_id()), "page": self.photos_page}
@@ -97,11 +97,13 @@ class Main:
         if self.config["photos"]["token"]:
             url += f"?apikey={self.config['photos']['token']}"
 
-        if q!=None or purity!=None:
+        if q!=None or purity!=None or categories!=None:
             if q!=None:
                 params["q"] = q
             if purity!=None:
                 params["purity"] = purity
+            if categories!=None:
+                params["categories"] = categories
             params["page"] = 1
             response = requests.Session().get(url, params=params).json()
             if response["data"]!=[]:
@@ -233,7 +235,11 @@ class Main:
                     purity = event.text[2]
                 else:
                     purity = None
-                photo_url = self.getPhotoUrl(q=event.text[1], purity=purity)
+                if len(event.text)>3:
+                    categories = event.text[3]
+                else:
+                    categories = None
+                photo_url = self.getPhotoUrl(q=event.text[1], purity=purity, categories=categories)
             else:
                 photo_url = self.getPhotoUrl()
             if photo_url!=None:
@@ -339,7 +345,7 @@ class Main:
             text.append("       !перм (!perm, !perk, !перк, !разрешение, !права) (list,лист,список) (perk/user)* - показать права")
             text.append("       !статус (!status) - статус свитчей")
         text.append("   Требуются права:")
-        text.append("       !pic (!пик, !пикча, !картиночка, !картиночки, !картинка, !картинки) (query)* (purity)* - картинки")
+        text.append("       !pic (!пик, !пикча, !картиночка, !картиночки, !картинка, !картинки) (query)* (purity)* (categories)* - картинки")
         text.append("   Общедоступные:")
         text.append("       !помощь (!хелп, !help, !справка) - справка")
         text.append("* - Optional argument")
