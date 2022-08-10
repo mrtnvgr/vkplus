@@ -230,7 +230,10 @@ class Main:
 
     def helpHandler(self, event):
         if event.text[0] in ("!хелп", "!help", "!помощь", "!справка"):
-            self.sendreply(event, self.gethelptext(event))
+            if not event.from_me:
+                self.sendreply(event, self.gethelptext(event))
+            else:
+                self.sendme(event, self.gethelptext(event))
 
     def statusHandler(self, event):
         if event.text[0] in ("!status", "!статус"):
