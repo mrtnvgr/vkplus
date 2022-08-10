@@ -7,7 +7,7 @@ import requests
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-3"
+        self.version = "0.0.0-4"
         self.reload()
         self.listen()
 
@@ -147,10 +147,11 @@ class Main:
                     self.silentSwitchHandler(event)
                     self.muteHandler(event)
                     self.unMuteHandler(event)
+                    self.permHandler(event)
                     self.statusHandler(event)
-                    self.helpHandler(event)
                 if event.user_id in self.config["perms"]["pics"] or event.from_me:
                     self.picsHandler(event)
+                self.helpHandler(event)
 
     def restrictionSwitchHandler(self, event):
         if event.text[0] in ("!вкл", "!он", "!on", "!включить"):
@@ -219,7 +220,7 @@ class Main:
 
     def helpHandler(self, event):
         if event.text[0] in ("!хелп", "!help", "!помощь", "!справка"):
-            self.sendme(event, self.gethelptext())
+            self.sendreply(event, self.gethelptext(event))
 
     def statusHandler(self, event):
         if event.text[0] in ("!status", "!статус"):
@@ -240,6 +241,39 @@ class Main:
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
             else:
                 self.sendreply(event, "Нету такого.")
+
+    def permHandler(self, event):
+        if event.text[0] in ("!perm", "!перм", "!perk", "!перк", "!разрешение", "!права"): # TODO: $all handling
+            if len(event.text)==4:
+                user_id, user_name = self.getmentioninfo(event)
+                if event.text[1] in ("добавить", "дать", "add"):
+                    if event.text[3] in self.config["perms"]:
+                        self.config["perms"][event.text[3]].append(int(user_id))
+                        self.saveConfig()
+                        self.sendreply(event, f"{user_name} теперь может использовать {event.text[3]}.")
+                elif event.text[1] in ("удалить", "забрать", "убрать", "delete", "del"):
+                    if event.text[3] in self.config["perms"]:
+                        for id in self.config["perms"][event.text[3]]:
+                            if id==user_id:
+                                self.config["perms"][event.text[3]].remove(int(id))
+                                self.saveConfig()
+                                self.sendreply(event, f"{user_name} теперь нельзя использовать {event.text[3]}.")
+            if len(event.text)>=2:
+                if event.text[1].lower() in ("list", "лист", "список"):
+                    if len(event.text)==2:
+                        self.sendreply(event, f"Perks: {', '.join(self.config['perms'])}")
+                    elif len(event.text)==3:
+                        user_id, user_name = self.getmentioninfo(event)
+                        if user_id==None:
+                            pass # send perk users TODO
+                            # self.sendreply(event, f"Perk {event.text[2]} users: {', '.join(self.config['perms'][event.text[2]])}")
+                        else:
+                            perks = []
+                            for perk in self.config["perms"]:
+                                if int(user_id) in self.config["perms"][perk]:
+                                    perks.append(perk)
+                            if perks==[]: perks = ["None"]
+                            self.sendreply(event, f"{user_name} perks: {', '.join(perks)}")
 
     def restrictionsHandler(self, event):
         self.mutedUserHandler(event)
@@ -278,9 +312,9 @@ class Main:
     @staticmethod
     def getmentioninfo(event):
         try:
-            splitted = event.text[1].split("|")
-            user_id = splitted[0].removeprefix("[id")
-            user_name = splitted[1].removesuffix("]")
+            splitted = " ".join(event.text).split("|")
+            user_id = splitted[0].split("[id")[1]
+            user_name = splitted[1].split("]")[0]
             return user_id, user_name
         except:
             for var in ("@all", "@все", "@everyone"):
@@ -288,20 +322,28 @@ class Main:
                     return None, "$all"
             return None, None
 
-    def gethelptext(self):
+    def gethelptext(self, event):
         text = []
         text.append(f"VKPlus v{self.version} (github.com/mrtnvgr/vkplus)")
         text.append("Команды:")
-        text.append("   !мут (!молчи, !помолчи, !молчать, !терпи, !потерпи, !завали, !заткнись, !mute, !mut) - мут")
-        text.append("   !анмут (!размут, !unmute, !unmut) - анмут")
-        text.append("   !включить (!вкл, !on, !он) - включить ограничения")
-        text.append("   !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
-        text.append("   !silent (!сайлент, !тихо) - включить тихий режим")
-        text.append("   !unsilent (!ансайлент, !громко) - выключить тихий режим")
-        text.append("   !pic (!пик, !пикча, !картиночка, !картиночки, !картинка, !картинки) - картинки")
+        if event.from_me:
+            text.append("   Админкие:")
+            text.append("       !мут (!молчи, !помолчи, !молчать, !терпи, !потерпи, !завали, !заткнись, !mute, !mut) (user) - мут")
+            text.append("       !анмут (!размут, !unmute, !unmut) (user) - анмут")
+            text.append("       !включить (!вкл, !on, !он) - включить ограничения")
+            text.append("       !выключить (!выкл, !офф, !оф, !off) - выключить ограничения")
+            text.append("       !silent (!сайлент, !тихо) - включить тихий режим")
+            text.append("       !unsilent (!ансайлент, !громко) - выключить тихий режим")
+            text.append("       !перм (!perm, !perk, !перк, !разрешение, !права) (добавить,дать,add) (user) (perk) - дать права")
+            text.append("       !перм (!perm, !perk, !перк, !разрешение, !права) (удалить,забрать,убрать,delete,del) (perk/user)* - забрать права")
+            text.append("       !перм (!perm, !perk, !перк, !разрешение, !права) (list,лист,список) (perk/user)* - показать права")
+            text.append("       !статус (!status) - статус свитчей")
+        text.append("   Требуются права:")
+        text.append("       !pic (!пик, !пикча, !картиночка, !картиночки, !картинка, !картинки) (query)* (purity)* - картинки")
+        text.append("   Общедоступные:")
+        text.append("       !помощь (!хелп, !help, !справка) - справка")
+        text.append("* - Optional argument")
         #TODO: text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
-        text.append("   !статус (!status) - статус свитчей")
-        text.append("   !помощь (!хелп, !help, !справка) - справка в избранное")
         return "\n".join(text)
 
     def getstatusinfo(self, event):
