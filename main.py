@@ -2,7 +2,7 @@
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
 import vk_api, json, time, re, shlex
-from random import choice
+from random import choice, shuffle
 import requests
 
 class Main:
@@ -37,6 +37,8 @@ class Main:
             self.config["photos"]["categories"] = "010"
         if "purity" not in self.config["photos"]:
             self.config["photos"]["purity"] = "100"
+        if "ids" not in self.config["photos"]:
+            self.config["photos"]["ids"] = []
         self.checkPermsHealth()
 
     def checkPermsHealth(self):
@@ -107,18 +109,24 @@ class Main:
             params["page"] = 1
             response = requests.Session().get(url, params=params).json()
             if response["data"]!=[]:
-                return choice(response["data"])["path"]
+                shuffle(response["data"])
+                for photo in response["data"]:
+                    if photo["id"] not in self.config["photos"]["ids"]:
+                        self.config["photos"]["ids"].append(photo["id"])
+                        self.saveConfig()
+                        return photo["path"]
+                return False
             else:
                 return None
-            
-        if self.photos==[]:
-            self.photos_page += 1
-            params["page"] = self.photos_page
-            response = requests.Session().get(url, params=params).json()
-            self.photos = response["data"]
-        photo = choice(self.photos)
-        self.photos.remove(photo)
-        return photo["path"]
+        else:
+            if self.photos==[]:
+                self.photos_page += 1
+                params["page"] = self.photos_page
+                response = requests.Session().get(url, params=params).json()
+                self.photos = response["data"]
+            photo = choice(self.photos)
+            self.photos.remove(photo)
+            return photo["path"]
 
     def deleteMessage(self, message_id):
         self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
@@ -242,11 +250,13 @@ class Main:
                 photo_url = self.getPhotoUrl(q=event.text[1], purity=purity, categories=categories)
             else:
                 photo_url = self.getPhotoUrl()
-            if photo_url!=None:
+            if photo_url==None:
+                self.sendreply(event, "Нету такого.")
+            elif photo_url==False:
+                self.sendreply(event, "По этому запросу закончились картиночки.")
+            else:
                 attachment = self.uploadPhoto(photo_url)
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
-            else:
-                self.sendreply(event, "Нету такого.")
 
     def permHandler(self, event):
         if event.text[0] in ("!perm", "!перм", "!perk", "!перк", "!разрешение", "!права"): # TODO: $all handling
