@@ -98,7 +98,7 @@ class Main:
 
     def getPhotoUrl(self, q=None, purity=None, categories=None):
         params = {"q": self.config["photos"]["query"], "categories": self.config["photos"]["categories"], 
-                  "purity": self.config["photos"]["purity"], "sorting": "relevance", 
+                  "purity": self.config["photos"]["purity"], "sorting": "views", 
                   "seed": abs(get_random_id()), "page": self.photos_page}
 
         url = "https://wallhaven.cc/api/v1/search"
@@ -130,9 +130,12 @@ class Main:
                 params["page"] = self.photos_page
                 response = requests.Session().get(url, params=params).json()
                 self.photos = response["data"]
-            photo = choice(self.photos)
-            self.photos.remove(photo)
-            return photo["path"]
+            if self.photos!=[]:
+                photo = choice(self.photos)
+                self.photos.remove(photo)
+                return photo["path"]
+            else:
+                return None
 
     def deleteMessage(self, message_id):
         self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
