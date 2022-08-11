@@ -99,7 +99,7 @@ class Main:
     def getPhotoUrl(self, q=None, purity=None, categories=None):
         params = {"q": self.config["photos"]["query"], "categories": self.config["photos"]["categories"], 
                   "purity": self.config["photos"]["purity"], "sorting": "views", 
-                  "seed": abs(get_random_id()), "page": self.photos_page}
+                  "seed": abs(get_random_id()), "page": self.photos_page} # NOTE: if photo q changes => page = 0
 
         url = "https://wallhaven.cc/api/v1/search"
         if self.config["photos"]["token"]:
@@ -166,7 +166,6 @@ class Main:
                         self.restrictionsHandler(event)
                 if event.from_chat or event.from_user:
                     self.cmdHandler(event)
-            # NOTE: self.animebanHandler()...
 
     def cmdHandler(self, event):
         if hasattr(event, "text"):
@@ -281,7 +280,7 @@ class Main:
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
 
     def permHandler(self, event):
-        if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"): # TODO: $all handling
+        if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
             if len(event.text)==4:
                 user_id, user_name = self.getmentioninfo(event)
                 if event.text[1] in ("добавить", "дать", "add"):
@@ -409,7 +408,7 @@ class Main:
         text.append(f"Prefix: ({self.config['prefix']})")
         text.append(f"Restrictions: {self.config['restrictions']}")
         text.append(f"Silent mode: {self.config['silent']}")
-        text.append(f"Muted users: ") # TODO: add perms and current prefix
+        text.append(f"Muted users: ") # TODO: add perms
         if peer_id in self.config["users"]:
             if "mute" in self.config["users"][peer_id]:
                 text[-1] = text[-1] + "all"
