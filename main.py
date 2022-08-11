@@ -7,7 +7,7 @@ import requests
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-5"
+        self.version = "0.0.0-6"
         self.reload()
         self.listen()
 
@@ -129,11 +129,14 @@ class Main:
                 self.photos_page += 1
                 params["page"] = self.photos_page
                 response = requests.Session().get(url, params=params).json()
-                self.photos = response["data"]
+                self.photos = shuffle(response["data"])
             if self.photos!=[]:
-                photo = choice(self.photos)
-                self.photos.remove(photo)
-                return photo["path"]
+                for photo in self.photos:
+                    if photo["id"] not in self.config["photos"]["ids"]:
+                        self.config["photos"]["ids"].append(photo["id"])
+                        self.saveConfig()
+                        self.photos.remove(photo)
+                        return photo["path"]
             else:
                 return None
 
