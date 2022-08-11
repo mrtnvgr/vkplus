@@ -124,7 +124,8 @@ class Main:
                 self.photos_page += 1
                 params["page"] = self.photos_page
                 response = requests.Session().get(url, params=params).json()
-                self.photos = shuffle(response["data"])
+                shuffle(response["data"])
+                self.photos = response["data"]
             if self.photos!=[]:
                 return self.checkPhotoRepeat(self.photos)
             else:
