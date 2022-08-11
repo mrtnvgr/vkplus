@@ -116,12 +116,7 @@ class Main:
             response = requests.Session().get(url, params=params).json()
             if response["data"]!=[]:
                 shuffle(response["data"])
-                for photo in response["data"]:
-                    if photo["id"] not in self.config["photos"]["ids"]:
-                        self.config["photos"]["ids"].append(photo["id"])
-                        self.saveConfig()
-                        return photo["path"]
-                return False
+                return self.checkPhotoRepeat(response["data"])
             else:
                 return None
         else:
@@ -131,14 +126,18 @@ class Main:
                 response = requests.Session().get(url, params=params).json()
                 self.photos = shuffle(response["data"])
             if self.photos!=[]:
-                for photo in self.photos:
-                    if photo["id"] not in self.config["photos"]["ids"]:
-                        self.config["photos"]["ids"].append(photo["id"])
-                        self.saveConfig()
-                        self.photos.remove(photo)
-                        return photo["path"]
+                return self.checkPhotoRepeat(self.photos)
             else:
                 return None
+
+    def checkPhotoRepeat(self, photos):
+        for photo in photos:
+            if photo["id"] not in self.config["photos"]["ids"]:
+                self.config["photos"]["ids"].append(photo["id"])
+                self.saveConfig()
+                photos.remove(photo)
+                return photo["path"]
+        return False
 
     def deleteMessage(self, message_id):
         self.method("messages.delete", {"message_ids": message_id, "delete_for_all": 1})
