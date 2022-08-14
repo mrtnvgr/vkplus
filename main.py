@@ -302,8 +302,11 @@ class Main:
                     elif len(event.text)==3:
                         user_id, user_name = self.getmentioninfo(event)
                         if user_id==None:
-                            pass # send perk users TODO
-                            # self.sendreply(event, f"Perk {event.text[2]} users: {', '.join(self.config['perms'][event.text[2]])}")
+                            users = []
+                            for user_id in self.config['perms'][event.text[2]]:
+                                user = self.getUser(user_id)[0]
+                                users.append(f"{user['first_name']} {user['last_name']}")
+                            self.sendreply(event, f"Perk {event.text[2]} users: {', '.join(users)}")
                         else:
                             perks = []
                             for perk in self.config["perms"]:
