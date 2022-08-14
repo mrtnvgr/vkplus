@@ -7,7 +7,7 @@ import requests
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-6"
+        self.version = "0.0.0-7"
         self.reload()
         self.listen()
 
@@ -161,11 +161,11 @@ class Main:
                 else:
                     if event.text[0].startswith(self.config["prefix"]):
                         event.text[0] = event.text[0].removeprefix(self.config["prefix"])
+                        if event.from_chat or event.from_user:
+                            self.cmdHandler(event)
                 if event.from_chat:
                     if self.config["restrictions"]:
                         self.restrictionsHandler(event)
-                if event.from_chat or event.from_user:
-                    self.cmdHandler(event)
 
     def cmdHandler(self, event):
         if hasattr(event, "text"):
@@ -175,10 +175,10 @@ class Main:
                 self.muteHandler(event)
                 self.unMuteHandler(event)
                 self.permHandler(event)
-                self.prefixHandler(event)
                 self.statusHandler(event)
             if event.user_id in self.config["perms"]["pics"] or event.from_me:
                 self.picsHandler(event)
+            self.prefixHandler(event)
             self.helpHandler(event)
 
     def restrictionSwitchHandler(self, event):
@@ -320,7 +320,7 @@ class Main:
             if len(event.text)==2:
                 if event.text[1] in ("view","посмотреть","глянуть","current","текущий"):
                     self.sendreply(event, f"Текущий префикс: ({self.config['prefix']})")
-            elif len(event.text)==3:
+            elif len(event.text)==3 and event.from_me:
                 if event.text[1] in ("change","поменять","изменить","set","поставить"):
                     if event.text[2]!="\\":
                         self.config["prefix"] = event.text[2]
@@ -393,12 +393,12 @@ class Main:
             text.append(f"       {pr}unsilent ({pr}ансайлент, {pr}громко) - выключить тихий режим")
             text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (добавить,дать,add) (user) (perk) - дать права")
             text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (удалить,забрать,убрать,delete,del) (perk/user)* - забрать права")
-            text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
             text.append(f"       {pr}префикс ({pr}prefix) (change,поменять,изменить,set,поставить) - изменение префикса")
             text.append(f"       {pr}префикс ({pr}prefix) (view,посмотреть,глянуть,current,текущий) - текущий префикс")
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
+        text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append("   Общедоступные:")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
         text.append("* - Optional argument")
