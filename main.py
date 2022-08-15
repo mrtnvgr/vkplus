@@ -174,6 +174,7 @@ class Main:
                 self.silentSwitchHandler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
+                self.kickHandler(event)
                 self.permHandler(event)
                 self.statusHandler(event)
             if event.user_id in self.config["perms"]["pics"] or event.from_me:
@@ -245,6 +246,15 @@ class Main:
                     self.config["users"][user].pop("mute")
             self.saveConfig()
             self.sendreply(event, "Все размучены.")
+
+    def kickHandler(self, event):
+        if event.text[0] in ("кик","kick","пнуть","ануотсюда","кыш","пшел","пшёл","вон","исключить"):
+            if len(event.text)>1:
+                user_id, user_name = self.getmentioninfo(event)
+                if user_id!=None:
+                    user = self.getUser(user_id)[0]
+                    self.method("messages.removeChatUser", {"chat_id": event.chat_id, "user_id": user['id']})
+                    self.sendreply(event, text=f"{user['first_name']} {user['last_name']} исключен.")
 
     def helpHandler(self, event):
         if event.text[0] in ("хелп", "help", "помощь", "справка"):
@@ -387,6 +397,7 @@ class Main:
             text.append("   Админкие:")
             text.append(f"       {pr}мут ({pr}молчи, {pr}помолчи, {pr}молчать, {pr}терпи, {pr}потерпи, {pr}завали, {pr}заткнись, {pr}mute, {pr}mut) (user) - мут")
             text.append(f"       {pr}анмут ({pr}размут, {pr}unmute, {pr}unmut) (user) - анмут")
+            text.append(f"       {pr}кик (kick, пнуть, ануотсюда, кыш, пшел, пшёл, вон, исключить) - кик")
             text.append(f"       {pr}включить ({pr}вкл, {pr}on, {pr}он) - включить ограничения")
             text.append(f"       {pr}выключить ({pr}выкл, {pr}офф, {pr}оф, {pr}off) - выключить ограничения")
             text.append(f"       {pr}silent ({pr}сайлент, {pr}тихо) - включить тихий режим")
