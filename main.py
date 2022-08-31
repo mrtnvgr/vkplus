@@ -50,10 +50,10 @@ class Main:
     def checkPermsHealth(self):
         if "perms" not in self.config:
             self.config["perms"] = {}
-        if "pics" not in self.config["perms"]:
-            self.config["perms"]["pics"] = []
-        if "customPics" not in self.config["perms"]:
-            self.config["perms"]["customPics"] = []
+        for perm in ("pics", "customPics",
+                     "core"):
+            if perm not in self.config["perms"]:
+                self.config["perms"][perm] = []
 
         for perm in self.config["perms"]:
             for i,elem in enumerate(self.config["perms"][perm]):
@@ -179,6 +179,8 @@ class Main:
                 self.statusHandler(event)
             if event.user_id in self.config["perms"]["pics"] or event.from_me:
                 self.picsHandler(event)
+            if event.user_id in self.config["perms"]["core"] or event.from_me:
+                self.coreHandler(event)
             self.prefixHandler(event)
             self.helpHandler(event)
 
@@ -288,6 +290,13 @@ class Main:
             else:
                 attachment = self.uploadPhoto(photo_url)
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
+
+    def coreHandler(self, event):
+        if event.text[0] in ("nightcore", "nc", "core", "кор", "коре"):
+            if event.user_id in self.config["perms"]["core"] or event.from_me:
+                if len(event.text)==1:
+                    event.text.append("0.25")
+                # TODO
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
@@ -410,6 +419,7 @@ class Main:
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
+        text.append(f"       {pr}nightcore (найткор, nc, core, кор, коре) (speed)* - ускорить аудиозапись")
         text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append("   Общедоступные:")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
