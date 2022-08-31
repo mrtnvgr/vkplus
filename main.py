@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
-import vk_api, json, time, re, shlex
+import vk_api, os, json, time, re, shlex
 from random import choice, shuffle
 import requests
 
@@ -12,7 +12,11 @@ class Main:
         self.listen()
 
     def reload(self):
-        self.config = json.load(open("config.json"))
+        if os.path.exists("config.json"):
+            self.config = json.load(open("config.json"))
+        else:
+            token = input("VK ADMIN API TOKEN: ")
+            self.config = {"token": token}
         self.photos = []
         self.photos_page = 0
         self.initVkApi()
@@ -296,7 +300,7 @@ class Main:
             if event.user_id in self.config["perms"]["core"] or event.from_me:
                 if len(event.text)==1:
                     event.text.append("0.25")
-                # TODO
+                print(event.attachments)
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
