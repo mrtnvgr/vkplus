@@ -3,6 +3,7 @@ from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
 import vk_api, os, json, time, re, shlex
 from random import choice, shuffle
+import nightcore
 import requests
 
 class Main:
@@ -303,7 +304,11 @@ class Main:
                     for i in range(len(event.attachments)//2):
                         if event.attachments[f"attach{i+1}_type"]=="audio":
                             audios.append(event.attachments[f"attach{i+1}"])
-                    print(",".join(audios))
+                    response = self.method("audio.getById",
+                                          {"audios": audios})
+                    for audio in response:
+                        data = nightcore.speed_change(audio["url"], float(event.text[1]))
+                        print(data) 
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
