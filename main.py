@@ -25,7 +25,7 @@ class Main:
 
     def checkConfigHealth(self):
         if "prefix" not in self.config:
-            self.config["prefix"] = "./"
+            self.config["prefix"] = "%"
         if "mention" not in self.config:
             self.config["mention"] = ""
 
@@ -181,10 +181,8 @@ class Main:
                 self.kickHandler(event)
                 self.permHandler(event)
                 self.statusHandler(event)
-            if event.user_id in self.config["perms"]["pics"] or event.from_me:
-                self.picsHandler(event)
-            if event.user_id in self.config["perms"]["core"] or event.from_me:
-                self.coreHandler(event)
+            self.picsHandler(event)
+            self.coreHandler(event)
             self.prefixHandler(event)
             self.helpHandler(event)
 
@@ -298,9 +296,14 @@ class Main:
     def coreHandler(self, event):
         if event.text[0] in ("nightcore", "nc", "core", "кор", "коре"):
             if event.user_id in self.config["perms"]["core"] or event.from_me:
-                if len(event.text)==1:
-                    event.text.append("0.25")
-                print(event.attachments)
+                if event.attachments!={}:
+                    if len(event.text)==1:
+                        event.text.append("0.25")
+                    audios = []
+                    for i in range(len(event.attachments)//2):
+                        if event.attachments[f"attach{i+1}_type"]=="audio":
+                            audios.append(event.attachments[f"attach{i+1}"])
+                    print(",".join(audios))
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
