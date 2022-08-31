@@ -7,7 +7,7 @@ import requests
 
 class Main:
     def __init__(self):
-        self.version = "0.0.0-7"
+        self.version = "0.0.1"
         self.reload()
         self.listen()
 
@@ -346,16 +346,17 @@ class Main:
 
         user = None
         if f"{peer_id}|{user_id}" in self.config["users"]:
-            user = self.config["users"][f"{peer_id}|{user_id}"]
+            user_elem = f"{peer_id}|{user_id}"
         elif peer_id in self.config["users"]:
-            user = self.config["users"][peer_id]
+            user_elem = peer_id
         if user!=None:
+            user = self.config["users"][user_elem]
             if "mute" in user:
                 if "time" in user["mute"]:
                     if int(time.time())>=user["mute"]["time"]:
-                        self.deleteMessage(event.message_id)
+                        self.config["users"][user_elem].pop("mute")
                     else:
-                        user.pop("mute")
+                        self.deleteMessage(event.message_id)
 
     @staticmethod
     def gettime(st):
