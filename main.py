@@ -313,9 +313,12 @@ class Main:
                     if len(event.text)==1:
                         event.text.append("1.25")
                     else:
-                        pass # TODO: проверка на число а не строчка
-                    if float(event.text[1])<=0 or float(event.text[1])==1:
-                        return
+                        if not event.text[1].replace(".","",1).isdigit():
+                            return
+                    if not event.from_me:
+                        if float(event.text[1])<0.50 or float(event.text[1])>1.50:
+                            self.sendreply(event, "Ограничения <0.50 >1.50")
+                            return
                     audios = []
                     for i in range(len(event.attachments)//2):
                         if event.attachments[f"attach{i+1}_type"]=="audio":
@@ -330,7 +333,7 @@ class Main:
                             typecore = "nightcore"
                         else:
                             typecore = "daycore"
-                        artist = "♡｡✧|3ㄴ¥∆ㅜ✧。* °*"
+                        artist = "••¤(`×[¤ 𝓟❶３𝐝❸𝔷 ¤]×´)¤••"
                         title = f'{audio["title"]} +| {typecore} x{event.text[1]}'
                         newAudio = self.uploadAudio(data, artist, title)
                         attachments.append(f"audio{newAudio['owner_id']}_{newAudio['id']}_{newAudio['access_key']}")
