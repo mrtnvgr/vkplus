@@ -78,9 +78,9 @@ class Main:
             payload = {"peer_id": event.peer_id, "random_id": get_random_id(), "message": text, "attachment": ",".join(attachment)}
             if reply:
                 payload["reply_to"] = event.message_id
-            self.method("messages.send", payload)
+            return self.method("messages.send", payload)
         else:
-            self.deleteMessage(event.message_id)
+            return self.deleteMessage(event.message_id)
 
     def sendme(self, event, text):
         if self.config["silent"]:
@@ -95,6 +95,18 @@ class Main:
         response = session.post(server, files={"photo": (photo["name"], photo["content"])}).json()
         attachment = self.method("photos.saveMessagesPhoto", response)[0]
         return attachment
+
+    def uploadAudio(self, data, artist, title):
+        session = requests.Session()
+        server = self.method("audio.getUploadServer")["upload_url"]
+        response = session.post(server,
+                                files={"file": ("music.mp3", data)}).json()
+        audio = self.method("audio.save", {"artist": artist,
+                                           "title": title,
+                                           "server": response["server"],
+                                           "audio": response["audio"],
+                                           "hash": response["hash"]})
+        return audio
 
     def getUrlContent(self, url):
         response = requests.Session().get(url)
@@ -299,16 +311,30 @@ class Main:
             if event.user_id in self.config["perms"]["core"] or event.from_me:
                 if event.attachments!={}:
                     if len(event.text)==1:
-                        event.text.append("0.25")
+                        event.text.append("1.25")
+                    else:
+                        pass # TODO: проверка на число а не строчка
+                    if float(event.text[1])<=0 or float(event.text[1])==1:
+                        return
                     audios = []
                     for i in range(len(event.attachments)//2):
                         if event.attachments[f"attach{i+1}_type"]=="audio":
                             audios.append(event.attachments[f"attach{i+1}"])
                     response = self.method("audio.getById",
                                           {"audios": audios})
+                    attachments = []
                     for audio in response:
-                        data = nightcore.speed_change(audio["url"], float(event.text[1]))
-                        print(data) 
+                        data = nightcore.speed_change(audio["url"],
+                                                    float(event.text[1]))
+                        if float(event.text[1])>1:
+                            typecore = "nightcore"
+                        else:
+                            typecore = "daycore"
+                        artist = "♡｡✧|3ㄴ¥∆ㅜ✧。* °*"
+                        title = f'{audio["title"]} +| {typecore} x{event.text[1]}'
+                        newAudio = self.uploadAudio(data, artist, title)
+                        attachments.append(f"audio{newAudio['owner_id']}_{newAudio['id']}_{newAudio['access_key']}")
+                    self.sendreply(event, ":3", attachments)
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
