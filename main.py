@@ -311,7 +311,7 @@ class Main:
             if event.user_id in self.config["perms"]["core"] or event.from_me:
                 if event.attachments!={}:
                     if len(event.text)==1:
-                        event.text.append("1.25")
+                        event.text.append("1.35")
                     else:
                         if not event.text[1].replace(".","",1).isdigit():
                             return
@@ -327,7 +327,6 @@ class Main:
                                           {"audios": audios})
                     attachments = []
                     for audio in response:
-                        print(audio["duration"])
                         if audio["duration"]>300:
                             self.sendreply(event, "Ограничения времени 0-300")
                             return
