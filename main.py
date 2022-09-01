@@ -317,7 +317,7 @@ class Main:
                             return
                     if not event.from_me:
                         if float(event.text[1])<0.50 or float(event.text[1])>1.50:
-                            self.sendreply(event, "Ограничения <0.50 >1.50")
+                            self.sendreply(event, "Ограничения скорости 0.5-1.5")
                             return
                     audios = []
                     for i in range(len(event.attachments)//2):
@@ -327,6 +327,10 @@ class Main:
                                           {"audios": audios})
                     attachments = []
                     for audio in response:
+                        print(audio["duration"])
+                        if audio["duration"]>300:
+                            self.sendreply(event, "Ограничения времени 0-300")
+                            return
                         data = nightcore.speed_change(audio["url"],
                                                     float(event.text[1]))
                         if float(event.text[1])>1:
