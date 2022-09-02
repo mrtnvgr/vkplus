@@ -328,7 +328,7 @@ class Main:
                         if event.attachments[f"attach{i+1}_type"]=="audio":
                             audios.append(event.attachments[f"attach{i+1}"])
                     response = self.method("audio.getById",
-                                          {"audios": audios})
+                                          {"audios": ",".join(audios)})
                     attachments = []
                     for audio in response:
                         if audio["duration"]>300:
