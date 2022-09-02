@@ -75,9 +75,11 @@ class Main:
 
     def sendreply(self, event, text, attachment=[], reply=True):
         if not self.config["silent"]:
-            payload = {"peer_id": event.peer_id, "random_id": get_random_id(), "message": text, "attachment": ",".join(attachment)}
+            payload = {"peer_id": event.peer_id, "random_id": get_random_id(), "attachment": ",".join(attachment)}
             if reply:
                 payload["reply_to"] = event.message_id
+            if text!=None:
+                payload["message"] = text
             return self.method("messages.send", payload)
         else:
             return self.deleteMessage(event.message_id)
@@ -312,7 +314,9 @@ class Main:
                 if event.attachments!={}:
                     if len(event.text)==1:
                         event.text.append("1.35")
+                        default = True
                     else:
+                        default = False
                         if not event.text[1].replace(".","",1).isdigit():
                             return
                     if not event.from_me:
@@ -337,10 +341,11 @@ class Main:
                         else:
                             typecore = "daycore"
                         artist = "••¤(`×[¤ 𝓟❶３𝐝❸𝔷 ¤]×´)¤••"
-                        title = f'{audio["title"]} +| {typecore} x{event.text[1]}'
+                        title = f'{audio["title"]} +| {typecore}'
+                        if not default: title += f" x{event.text[1]}"
                         newAudio = self.uploadAudio(data, artist, title)
                         attachments.append(f"audio{newAudio['owner_id']}_{newAudio['id']}_{newAudio['access_key']}")
-                    self.sendreply(event, ":3", attachments)
+                    self.sendreply(event, None, attachments)
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
