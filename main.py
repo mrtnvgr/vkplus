@@ -331,9 +331,10 @@ class Main:
                                           {"audios": ",".join(audios)})
                     attachments = []
                     for audio in response:
-                        if audio["duration"]>300:
-                            self.sendreply(event, "Ограничения времени 0-300")
-                            return
+                        if not event.from_me:
+                            if audio["duration"]>300:
+                                self.sendreply(event, "Ограничения времени 0-300")
+                                return
                         data = nightcore.speed_change(audio["url"],
                                                     float(event.text[1]))
                         if float(event.text[1])>1:
