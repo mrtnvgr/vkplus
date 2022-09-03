@@ -169,7 +169,6 @@ class Main:
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
                 self.eventHandler(event)
-                # attachments["reply"]
 
     def eventHandler(self, event):
         if hasattr(event, "text"):
@@ -335,9 +334,19 @@ class Main:
                         self.sendreply(event, "Ограничения скорости 0.5-1.5")
                         return
                 audios = []
-                for i in range(len(event.attachments)//2): # NOTE: ?
-                    if event.attachments[f"attach{i+1}_type"]=="audio":
+                for i in range(len(event.attachments)):
+                    if event.attachments.get(f"attach{i+1}_type","")=="audio":
                         audios.append(event.attachments[f"attach{i+1}"])
+                if "reply" in event.attachments:
+                    ids = json.loads(event.attachments["reply"])["conversation_message_id"]
+                    response = self.method("messages.getByConversationMessageId",
+                                           {"peer_id": event.peer_id,
+                                            "conversation_message_ids": ids})
+                    for item in response["items"]:
+                        for attachment in item["attachments"]:
+                            if attachment["type"]=="audio":
+                                audio = attachment["audio"]
+                                audios.append(f"{audio['owner_id']}_{audio['id']}_{audio['access_key']}")
                 response = self.method("audio.getById",
                                       {"audios": ",".join(audios)})
                 attachments = []
