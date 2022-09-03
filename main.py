@@ -169,6 +169,7 @@ class Main:
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
                 self.eventHandler(event)
+                # attachments["reply"]
 
     def eventHandler(self, event):
         if hasattr(event, "text"):
@@ -309,44 +310,54 @@ class Main:
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
 
     def coreHandler(self, event):
-        if event.text[0] in ("nightcore", "nc", "core", "кор", "коре"):
-            if event.user_id in self.config["perms"]["core"] or event.from_me:
-                if event.attachments!={}:
-                    if len(event.text)==1:
-                        event.text.append("1.35")
-                        default = True
-                    else:
-                        default = False
-                        if not event.text[1].replace(".","",1).isdigit():
-                            return
+        default = False
+        if event.text[0] in ("nightcore", "nc", "найткор"):
+            if len(event.text)==1:
+                event.text.append("1.35")
+                default = True
+        elif event.text[0] in ("daycore", "dc", "дейкор", "дэйкор"):
+            if len(event.text)==1:
+                event.text.append("0.65")
+                default = True
+        else:
+            if event.text[0] in ("core", "коре", "кор"):
+                if len(event.text)==1:
+                    event.text.append("1.35")
+                    default = True
+            else:
+                return
+        if event.user_id in self.config["perms"]["core"] or event.from_me:
+            if event.attachments!={}:
+                if not event.text[1].replace(".","",1).isdigit():
+                    return
+                if not event.from_me:
+                    if float(event.text[1])<0.50 or float(event.text[1])>1.50:
+                        self.sendreply(event, "Ограничения скорости 0.5-1.5")
+                        return
+                audios = []
+                for i in range(len(event.attachments)//2): # NOTE: ?
+                    if event.attachments[f"attach{i+1}_type"]=="audio":
+                        audios.append(event.attachments[f"attach{i+1}"])
+                response = self.method("audio.getById",
+                                      {"audios": ",".join(audios)})
+                attachments = []
+                for audio in response:
                     if not event.from_me:
-                        if float(event.text[1])<0.50 or float(event.text[1])>1.50:
-                            self.sendreply(event, "Ограничения скорости 0.5-1.5")
+                        if audio["duration"]>300:
+                            self.sendreply(event, "Ограничения времени 0-300")
                             return
-                    audios = []
-                    for i in range(len(event.attachments)//2):
-                        if event.attachments[f"attach{i+1}_type"]=="audio":
-                            audios.append(event.attachments[f"attach{i+1}"])
-                    response = self.method("audio.getById",
-                                          {"audios": ",".join(audios)})
-                    attachments = []
-                    for audio in response:
-                        if not event.from_me:
-                            if audio["duration"]>300:
-                                self.sendreply(event, "Ограничения времени 0-300")
-                                return
-                        data = nightcore.speed_change(audio["url"],
-                                                    float(event.text[1]))
-                        if float(event.text[1])>1:
-                            typecore = "nightcore"
-                        else:
-                            typecore = "daycore"
-                        artist = "••¤(`×[¤ 𝓟❶３𝐝❸𝔷 ¤]×´)¤••"
-                        title = f'{audio["title"]} +| {typecore}'
-                        if not default: title += f" x{event.text[1]}"
-                        newAudio = self.uploadAudio(data, artist, title)
-                        attachments.append(f"audio{newAudio['owner_id']}_{newAudio['id']}_{newAudio['access_key']}")
-                    self.sendreply(event, None, attachments)
+                    data = nightcore.speed_change(audio["url"],
+                                                float(event.text[1]))
+                    if float(event.text[1])>1:
+                        typecore = "nightcore"
+                    else:
+                        typecore = "daycore"
+                    artist = "••¤(`×[¤ 𝓟❶３𝐝❸𝔷 ¤]×´)¤••"
+                    title = f'{audio["title"]} +| {typecore}'
+                    if not default: title += f" x{event.text[1]}"
+                    newAudio = self.uploadAudio(data, artist, title)
+                    attachments.append(f"audio{newAudio['owner_id']}_{newAudio['id']}_{newAudio['access_key']}")
+                self.sendreply(event, None, attachments)
 
     def permHandler(self, event):
         if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
@@ -469,7 +480,7 @@ class Main:
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
-        text.append(f"       {pr}nightcore (найткор, nc, core, кор, коре) (speed)* - ускорить аудиозапись")
+        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, найткор)/(daycore, dc, дейкор, дэйкор) (speed)* - ускорить аудиозапись")
         text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append("   Общедоступные:")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
