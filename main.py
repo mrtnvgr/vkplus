@@ -310,30 +310,48 @@ class Main:
 
     def coreHandler(self, event):
         default = True
-        if event.text[0] in ("nightcore", "nc",
-                             "найткор", "найткоре"):
-            event.text.append("1.35")
-        elif event.text[0] in ("softnightcore", "snightcore",
-                               "softnc", "snc", 
-                               "софтнайткор", "софтнайткоре"):
-            event.text.append("1.17")
-        elif event.text[0] in ("daycore", "dc",
-                               "дейкор", "дэйкор",
-                               "дейкоре", "дэйкоре"):
-            event.text.append("0.70")
-        elif event.text[0] in ("softdaycore", "sdaycore",
-                               "softdc", "sdc",
-                               "софтдейкор", "софтдэйкор",
-                               "софтдейкоре", "софтдэйкоре"):
-            event.text.appned("0.85")
-        elif event.text[0] in ("core", "коре", "кор"):
-            event.text.append("1.35")
+        typecore = None
+        if len(event.text)==1:
+            if event.text[0] in ("nightcore", "nc",
+                                 "найткор", "найткоре"):
+                event.text.append("1.35")
+                typecore = "nightcore"
+            elif event.text[0] in ("softnightcore", "snightcore",
+                                   "softnc", "snc", 
+                                   "софтнайткор", "софтнайткоре"):
+                event.text.append("1.17")
+                typecore = "soft nightcore"
+            elif event.text[0] in ("daycore", "dc",
+                                   "дейкор", "дэйкор",
+                                   "дейкоре", "дэйкоре"):
+                event.text.append("0.70")
+                typecore = "daycore"
+            elif event.text[0] in ("softdaycore", "sdaycore",
+                                   "softdc", "sdc",
+                                   "софтдейкор", "софтдэйкор",
+                                   "софтдейкоре", "софтдэйкоре"):
+                event.text.append("0.85")
+                typecore = "soft daycore"
+            elif event.text[0] in ("core", "коре", "кор"):
+                event.text.append("1.35")
+                typecore = "nightcore"
+            else:
+                default = False
         else:
-            default = False
+            if not event.text[1].replace(".","",1).isdigit():
+                return
+            speed = float(event.text[1])
+            if speed<=0.70:
+                typecore = "daycore"
+            elif speed<=0.85:
+                typecore = "soft daycore"
+            elif speed<=1.17:
+                typecore = "soft nightcore"
+            elif speed<=1.35:
+                typecore = "nightcore"
+
         if event.user_id in self.config["perms"]["core"] or event.from_me:
             if event.attachments!={}:
-                if not event.text[1].replace(".","",1).isdigit():
-                    return
                 if not event.from_me:
                     if float(event.text[1])<0.50 or float(event.text[1])>1.50:
                         self.sendreply(event, "Ограничения скорости 0.5-1.5")
