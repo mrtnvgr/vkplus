@@ -380,10 +380,6 @@ class Main:
                             return
                     data = nightcore.speed_change(audio["url"],
                                                 float(event.text[1]))
-                    if float(event.text[1])>1:
-                        typecore = "nightcore"
-                    else:
-                        typecore = "daycore"
                     artist = "¤`×[¤ 𝓟❶３𝐝❸𝔷 ¤]*´"
                     title = f'{audio["title"]} +| {typecore}'
                     if not default: title += f" x{event.text[1]}"
