@@ -312,22 +312,22 @@ class Main:
         default = True
         typecore = None
         if len(event.text)==1:
-            if event.text[0] in ("nightcore", "nc",
+            if event.text[0] in ("nightcore", "nc", "нк",
                                  "найткор", "найткоре"):
                 event.text.append("1.35")
                 typecore = "nightcore"
             elif event.text[0] in ("softnightcore", "snightcore",
-                                   "softnc", "snc", 
+                                   "softnc", "snc", "снк",
                                    "софтнайткор", "софтнайткоре"):
                 event.text.append("1.17")
                 typecore = "soft nightcore"
-            elif event.text[0] in ("daycore", "dc",
+            elif event.text[0] in ("daycore", "dc", "дк",
                                    "дейкор", "дэйкор",
                                    "дейкоре", "дэйкоре"):
                 event.text.append("0.70")
                 typecore = "daycore"
             elif event.text[0] in ("softdaycore", "sdaycore",
-                                   "softdc", "sdc",
+                                   "softdc", "sdc", "сдк",
                                    "софтдейкор", "софтдэйкор",
                                    "софтдейкоре", "софтдэйкоре"):
                 event.text.append("0.85")
@@ -508,7 +508,7 @@ class Main:
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
-        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, найткор, найткоре)/(softnightcore, snightcore, softnc, snc, софтнайткор, софтнайткоре)/(daycore, dc, дейкор, дэйкор, дейкоре, дэйкоре)/(softdaycore, sdaycore, softdc, sdc, софтдейкор, софтдэйкор, софтдейкоре, софтдэйкоре) (speed)* - изменить скорость аудиозаписи")
+        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, нк, найткор, найткоре)/(softnightcore, snightcore, softnc, snc, снк, софтнайткор, софтнайткоре)/(daycore, dc, дк, дейкор, дэйкор, дейкоре, дэйкоре)/(softdaycore, sdaycore, softdc, sdc, сдк, софтдейкор, софтдэйкор, софтдейкоре, софтдэйкоре) (speed)* - изменить скорость аудиозаписи")
         text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append("   Общедоступные:")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
