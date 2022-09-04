@@ -316,7 +316,7 @@ class Main:
                 default = True
         elif event.text[0] in ("daycore", "dc", "дейкор", "дэйкор"):
             if len(event.text)==1:
-                event.text.append("0.65")
+                event.text.append("0.80")
                 default = True
         else:
             if event.text[0] in ("core", "коре", "кор"):
