@@ -380,7 +380,7 @@ class Main:
                             return
                     data = nightcore.speed_change(audio["url"],
                                                 float(event.text[1]))
-                    artist = "¤`×[¤ 𝓟❶３𝐝❸𝔷 ¤]*´"
+                    artist = "`×{¤ 𝔭13𝔡3𝔷 ¤}~"
                     title = f'{audio["title"]} +| {typecore}'
                     if not default: title += f" x{event.text[1]}"
                     newAudio = self.uploadAudio(data, artist, title)
