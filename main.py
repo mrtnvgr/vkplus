@@ -309,22 +309,27 @@ class Main:
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
 
     def coreHandler(self, event):
-        default = False
-        if event.text[0] in ("nightcore", "nc", "найткор"):
-            if len(event.text)==1:
-                event.text.append("1.35")
-                default = True
-        elif event.text[0] in ("daycore", "dc", "дейкор", "дэйкор"):
-            if len(event.text)==1:
-                event.text.append("0.80")
-                default = True
+        default = True
+        if event.text[0] in ("nightcore", "nc",
+                             "найткор", "найткоре"):
+            event.text.append("1.35")
+        elif event.text[0] in ("softnightcore", "snightcore",
+                               "softnc", "snc", 
+                               "софтнайткор", "софтнайткоре"):
+            event.text.append("1.17")
+        elif event.text[0] in ("daycore", "dc",
+                               "дейкор", "дэйкор",
+                               "дейкоре", "дэйкоре"):
+            event.text.append("0.70")
+        elif event.text[0] in ("softdaycore", "sdaycore",
+                               "softdc", "sdc",
+                               "софтдейкор", "софтдэйкор",
+                               "софтдейкоре", "софтдэйкоре"):
+            event.text.appned("0.85")
+        elif event.text[0] in ("core", "коре", "кор"):
+            event.text.append("1.35")
         else:
-            if event.text[0] in ("core", "коре", "кор"):
-                if len(event.text)==1:
-                    event.text.append("1.35")
-                    default = True
-            else:
-                return
+            default = False
         if event.user_id in self.config["perms"]["core"] or event.from_me:
             if event.attachments!={}:
                 if not event.text[1].replace(".","",1).isdigit():
@@ -489,7 +494,7 @@ class Main:
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
-        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, найткор)/(daycore, dc, дейкор, дэйкор) (speed)* - ускорить аудиозапись")
+        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, найткор, найткоре)/(softnightcore, snightcore, softnc, snc, софтнайткор, софтнайткоре)/(daycore, dc, дейкор, дэйкор, дейкоре, дэйкоре)/(softdaycore, sdaycore, softdc, sdc, софтдейкор, софтдэйкор, софтдейкоре, софтдэйкоре) (speed)* - изменить скорость аудиозаписи")
         text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append("   Общедоступные:")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
