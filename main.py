@@ -361,7 +361,7 @@ class Main:
                         typecore = "nightcore"
                     else:
                         typecore = "daycore"
-                    artist = "••¤(`×[¤ 𝓟❶３𝐝❸𝔷 ¤]×´)¤••"
+                    artist = "¤`×[¤ 𝓟❶３𝐝❸𝔷 ¤]*´"
                     title = f'{audio["title"]} +| {typecore}'
                     if not default: title += f" x{event.text[1]}"
                     newAudio = self.uploadAudio(data, artist, title)
