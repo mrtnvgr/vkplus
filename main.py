@@ -5,7 +5,9 @@ import vk_api, os, json, time, re, shlex
 from random import shuffle
 import requests
 
+# TODO: раставить по порядку
 from modules.core import CoreModule
+from modules.perm import PermissionsModule
 
 class Main:
     def __init__(self):
@@ -28,6 +30,7 @@ class Main:
 
     def loadModules(self):
         self.core_mod = CoreModule(self)
+        self.perm_mod = PermissionsModule(self)
 
     def checkConfigHealth(self):
         if "prefix" not in self.config:
@@ -204,7 +207,7 @@ class Main:
                 self.muteHandler(event)
                 self.unMuteHandler(event)
                 self.kickHandler(event)
-                self.permHandler(event)
+                self.perm_mod.permHandler(event)
                 self.statusHandler(event)
             self.picsHandler(event)
             self.core_mod.coreHandler(event)
@@ -317,42 +320,6 @@ class Main:
             else:
                 attachment = self.uploadPhoto(photo_url)
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
-
-    def permHandler(self, event):
-        if event.text[0] in ("perm", "перм", "perk", "перк", "разрешение", "права"):
-            if len(event.text)==4:
-                user_id, user_name = self.getmentioninfo(event)
-                if event.text[1] in ("добавить", "дать", "add"):
-                    if event.text[3] in self.config["perms"]:
-                        self.config["perms"][event.text[3]].append(int(user_id))
-                        self.saveConfig()
-                        self.sendreply(event, f"{user_name} теперь может использовать {event.text[3]}.")
-                elif event.text[1] in ("удалить", "забрать", "убрать", "delete", "del"):
-                    if event.text[3] in self.config["perms"]:
-                        for id in self.config["perms"][event.text[3]]:
-                            if id==user_id:
-                                self.config["perms"][event.text[3]].remove(int(id))
-                                self.saveConfig()
-                                self.sendreply(event, f"{user_name} теперь нельзя использовать {event.text[3]}.")
-            if len(event.text)>=2:
-                if event.text[1].lower() in ("list", "лист", "список"):
-                    if len(event.text)==2:
-                        self.sendreply(event, f"Perks: {', '.join(self.config['perms'])}")
-                    elif len(event.text)==3:
-                        user_id, user_name = self.getmentioninfo(event)
-                        if user_id==None:
-                            users = []
-                            for user_id in self.config['perms'][event.text[2]]:
-                                user = self.getUser(user_id)[0]
-                                users.append(f"{user['first_name']} {user['last_name']}")
-                            self.sendreply(event, f"Perk {event.text[2]} users: {', '.join(users)}")
-                        else:
-                            perks = []
-                            for perk in self.config["perms"]:
-                                if int(user_id) in self.config["perms"][perk]:
-                                    perks.append(perk)
-                            if perks==[]: perks = ["None"]
-                            self.sendreply(event, f"{user_name} perks: {', '.join(perks)}")
 
     def prefixHandler(self, event):
         if event.text[0] in ("префикс", "prefix"):
