@@ -166,9 +166,14 @@ class Main:
         return self.method("users.get", {"user_ids": user_id})
 
     def listen(self):
-        for event in self.longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
-                self.eventHandler(event)
+        while True:
+            try:
+                for event in self.longpoll.listen():
+                    if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
+                        self.eventHandler(event)
+                break
+            except requests.exceptions.ConnectionError:
+                continue
 
     def eventHandler(self, event):
         if hasattr(event, "text"):
