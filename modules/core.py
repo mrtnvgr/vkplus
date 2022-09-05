@@ -57,7 +57,18 @@ class CoreModule:
                 audios = []
                 for i in range(len(event.attachments)):
                     if event.attachments.get(f"attach{i+1}_type","")=="audio":
-                        audios.append(event.attachments[f"attach{i+1}"])
+                        audio = event.attachments[f"attach{i+1}"]
+                        if len(audio.split("_"))==2:
+                            print(audio)
+                            response = self.master.method("audio.getById", 
+                                                         {"audios": audio})
+                            if type(response) is int:
+                                self.master.sendreply(event, "Не удалось получить аудиозапись.")
+                                return
+                            else:
+                                if "access_key" in response:
+                                    audio += f"_{response['access_key']}"
+                        audios.append(audio)
                 if "reply" in event.attachments:
                     ids = json.loads(event.attachments["reply"])["conversation_message_id"]
                     response = self.master.method("messages.getByConversationMessageId",
