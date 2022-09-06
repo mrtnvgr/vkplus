@@ -88,6 +88,7 @@ class CoreModule:
                                 audios.append(f"{audio['owner_id']}_{audio['id']}_{audio['access_key']}")
                 response = self.master.method("audio.getById",
                                       {"audios": ",".join(audios)})
+                if audios==[]: return
                 attachments = []
                 for audio in response:
                     if not event.from_me:
