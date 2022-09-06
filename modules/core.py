@@ -5,33 +5,38 @@ import urllib, json
 class CoreModule:
     def __init__(self, master):
         self.master = master
+        self.speed = {"nc": "1.35",
+                      "snc": "1.17",
 
-    def coreHandler(self, event):
+                      "dc": "0.70",
+                      "sdc": "0.85"}
+
+    def getCoreType(self, event):
         default = True
         typecore = None
         if len(event.text)==1:
             if event.text[0] in ("nightcore", "nc", "нк",
                                  "найткор", "найткоре"):
-                event.text.append("1.35")
+                event.text.append(self.speed["nc"])
                 typecore = "nightcore"
             elif event.text[0] in ("softnightcore", "snightcore",
                                    "softnc", "snc", "снк",
                                    "софтнайткор", "софтнайткоре"):
-                event.text.append("1.17")
+                event.text.append(self.speed["snc"])
                 typecore = "soft nightcore"
             elif event.text[0] in ("daycore", "dc", "дк",
                                    "дейкор", "дэйкор",
                                    "дейкоре", "дэйкоре"):
-                event.text.append("0.70")
+                event.text.append(self.speed["dc"])
                 typecore = "daycore"
             elif event.text[0] in ("softdaycore", "sdaycore",
                                    "softdc", "sdc", "сдк",
                                    "софтдейкор", "софтдэйкор",
                                    "софтдейкоре", "софтдэйкоре"):
-                event.text.append("0.85")
+                event.text.append(self.speed["sdc"])
                 typecore = "soft daycore"
             elif event.text[0] in ("core", "коре", "кор"):
-                event.text.append("1.35")
+                event.text.append(self.speed["nc"])
                 typecore = "nightcore"
             else:
                 default = False
@@ -39,15 +44,18 @@ class CoreModule:
             if not event.text[1].replace(".","",1).isdigit():
                 return
             speed = float(event.text[1])
-            if speed<=0.70:
+            if speed<=float(self.speed["dc"]):
                 typecore = "daycore"
-            elif speed<=0.85:
+            elif speed<=float(self.speed["sdc"]):
                 typecore = "soft daycore"
-            elif speed<=1.17:
+            elif speed<=float(self.speed["snc"]):
                 typecore = "soft nightcore"
-            elif speed<=1.35:
+            elif speed<=float(self.speed["nc"]):
                 typecore = "nightcore"
+        return typecore, default
 
+    def coreHandler(self, event):
+        typecore, default = self.getCoreType(event)
         if event.user_id in self.master.config["perms"]["core"] or event.from_me:
             if event.attachments!={}:
                 if not event.from_me:
@@ -59,7 +67,6 @@ class CoreModule:
                     if event.attachments.get(f"attach{i+1}_type","")=="audio":
                         audio = event.attachments[f"attach{i+1}"]
                         if len(audio.split("_"))==2:
-                            print(audio)
                             response = self.master.method("audio.getById", 
                                                          {"audios": audio})
                             if type(response) is int:
