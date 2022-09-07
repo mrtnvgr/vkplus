@@ -1,2 +1,2 @@
 vk_api
-pydub
+ffmpeg # with soxr, mp3 support

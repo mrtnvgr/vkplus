@@ -1,5 +1,4 @@
-from pydub import AudioSegment
-from io import BytesIO
+import tempfile, subprocess, os
 import urllib, json
 
 class CoreModule:
@@ -97,7 +96,7 @@ class CoreModule:
                             return
                     data = speed_change(audio["url"],
                                                 float(event.text[1]))
-                    artist = "`×{¤ 𝔭13𝔡3𝔷 ¤}~"
+                    artist = "ᵖ¹³ᵈ³ᶻ"
                     title = f'{audio["title"]} +| {typecore}'
                     if not default: title += f" x{event.text[1]}"
                     newAudio = self.master.uploadAudio(data, artist, title)
@@ -106,11 +105,14 @@ class CoreModule:
 
 def speed_change(url, speed=1.0):
     file = urllib.request.urlopen(url).read()
-    sound = AudioSegment.from_mp3(BytesIO(file))
-    sound2 = sound._spawn(sound.raw_data, overrides={
-         "frame_rate": int(sound.frame_rate * speed)
-      })
-    sound2 = sound2.set_frame_rate(sound.frame_rate)
-    buf = BytesIO()
-    sound2.export(buf, format="mp3")
-    return buf.getvalue()
+    with tempfile.NamedTemporaryFile(prefix="core_", suffix=".mp3") as inputf:
+        output = os.path.join(os.path.dirname(inputf.name), "out_"+os.path.basename(inputf.name))
+        inputf.seek(0)
+        inputf.write(file)
+        stream = json.loads(subprocess.check_output(["ffprobe", "-hide_banner", "-loglevel", "panic", "-show_streams", "-of", "json", inputf.name]))
+        sample_rate = stream["streams"][0]["sample_rate"]
+        subprocess.run(["ffmpeg", "-i", inputf.name, "-ab", "320k", "-filter:a", f"asetrate={speed}*{sample_rate},aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr={sample_rate}", output], 
+                        check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        sound = open(output, "rb").read()
+    os.remove(output)
+    return sound
