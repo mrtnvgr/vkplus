@@ -68,9 +68,8 @@ class CoreModule:
                 self.reset()
                 self.getAudios(event)
                 self.getReplyAttachments(event)
-                if self.stuff=={}: return
+                if self.stuff=={} and self.objs=={}: return
                 self.parseAudios(event)
-                if self.objs=={}: return
                 attachments = self.uploadObjs(event)
                 self.master.sendreply(event, None, attachments)
 
@@ -100,8 +99,12 @@ class CoreModule:
                     if attachment["type"]=="audio":
                         audio = attachment["audio"]
                         self.stuff = self.add(self.stuff, "audio", f"{audio['owner_id']}_{audio['id']}_{audio['access_key']}")
+                    elif attachment["type"]=="audio_message":
+                        audio = attachment["audio_message"]
+                        self.objs = self.add(self.objs, "audio_message", audio)
 
     def parseAudios(self, event):
+        if "audio" not in self.stuff: return
         response = self.master.method("audio.getById",
                                      {"audios": ",".join(self.stuff["audio"])})
         for audio in response:
@@ -117,9 +120,18 @@ class CoreModule:
         for name in self.objs:
             for obj in self.objs[name]:
                 if name=="audio":
-                    data = speed_change(obj["url"],
-                                        float(event.text[1]))
-                    title = f'{obj["title"]} +| {self.typecore}'
+                    url = obj["url"]
+                    title = f'{obj["title"]}'
+                elif name=="audio_message":
+                    name = "audio"
+                    url = obj["link_mp3"]
+                    if "transcript" in obj:
+                        title = obj["transcript"]
+                    else:
+                        title = "Голосовое сообщение"
+                data = speed_change(url,
+                                    float(event.text[1]))
+                title += f" +| {self.typecore}"
                 new = self.master.uploadAudio(data, artist, title)
                 if not self.typecore_default: title += f" x{event.text[1]}"
                 attachments.append(f"{name}{new['owner_id']}_{new['id']}_{new['access_key']}")
