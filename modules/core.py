@@ -1,4 +1,5 @@
-import tempfile, subprocess, os
+from utils import run
+import tempfile, os
 import urllib, json
 
 class CoreModule:
@@ -149,10 +150,9 @@ def speed_change(url, speed=1.0):
         output = os.path.join(os.path.dirname(inputf.name), "out_"+os.path.basename(inputf.name))
         inputf.seek(0)
         inputf.write(file)
-        stream = json.loads(subprocess.check_output(["ffprobe", "-hide_banner", "-loglevel", "panic", "-show_streams", "-of", "json", inputf.name]))
+        stream = json.loads(utils.check_output(["ffprobe", "-hide_banner", "-loglevel", "panic", "-show_streams", "-of", "json", inputf.name]))
         sample_rate = stream["streams"][0]["sample_rate"]
-        subprocess.run(["ffmpeg", "-i", inputf.name, "-ab", "320k", "-filter:a", f"asetrate={speed}*{sample_rate},aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr={sample_rate}", output], 
-                        check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        utils.run(["ffmpeg", "-i", inputf.name, "-ab", "320k", "-filter:a", f"asetrate={speed}*{sample_rate},aresample=resampler=soxr:precision=24:osf=s32:tsf=s32p:osr={sample_rate}", output])
         sound = open(output, "rb").read()
     os.remove(output)
     return sound

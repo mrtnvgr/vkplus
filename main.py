@@ -8,6 +8,7 @@ import requests
 # TODO: раставить по порядку
 from modules.core import CoreModule
 from modules.perm import PermissionsModule
+from modules.update import UpdateModule
 
 class Main:
     def __init__(self):
@@ -31,6 +32,7 @@ class Main:
     def loadModules(self):
         self.core_mod = CoreModule(self)
         self.perm_mod = PermissionsModule(self)
+        self.update_mod = UpdateModule(self)
 
     def checkConfigHealth(self):
         if "prefix" not in self.config:
@@ -208,6 +210,7 @@ class Main:
                 self.unMuteHandler(event)
                 self.kickHandler(event)
                 self.perm_mod.permHandler(event)
+                self.update_mod.updateHandler(event)
                 self.statusHandler(event)
             self.picsHandler(event)
             self.core_mod.coreHandler(event)
@@ -403,6 +406,7 @@ class Main:
             text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (удалить,забрать,убрать,delete,del) (perk/user)* - забрать права")
             text.append(f"       {pr}префикс ({pr}prefix) (change,поменять,изменить,set,поставить) - изменение префикса")
             text.append(f"       {pr}префикс ({pr}prefix) (view,посмотреть,глянуть,current,текущий) - текущий префикс")
+            text.append(f"       {pr}апдейт (апдэйт, update) - обновить (требуется установка из git репозитория)")
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
         text.append("   Требуются права:")
         text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
