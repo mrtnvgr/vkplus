@@ -129,9 +129,9 @@ class CoreModule:
                         title = obj["transcript"]
                     else:
                         title = "Голосовое сообщение"
+                title += f" +| {self.typecore}"
                 data = speed_change(url,
                                     float(event.text[1]))
-                title += f" +| {self.typecore}"
                 new = self.master.uploadAudio(data, artist, title)
                 if not self.typecore_default: title += f" x{event.text[1]}"
                 attachments.append(f"{name}{new['owner_id']}_{new['id']}_{new['access_key']}")
