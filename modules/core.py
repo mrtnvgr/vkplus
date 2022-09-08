@@ -73,6 +73,7 @@ class CoreModule:
                 self.parseAudios(event)
                 attachments = self.uploadObjs(event)
                 self.master.sendreply(event, None, attachments)
+                self.cleanAttachments(attachments)
 
     def getAudios(self, event):
         for i in range(len(event.attachments)):
@@ -130,13 +131,20 @@ class CoreModule:
                         title = obj["transcript"]
                     else:
                         title = "Голосовое сообщение"
+                title += f" +| {self.typecore}"
                 data = speed_change(url,
                                     float(event.text[1]))
-                title += " +| {self.typecore}"
                 new = self.master.uploadAudio(data, artist, title)
                 if not self.typecore_default: title += f" x{event.text[1]}"
                 attachments.append(f"{name}{new['owner_id']}_{new['id']}_{new['access_key']}")
         return attachments
+
+    def cleanAttachments(self, attachments):
+        for attachment in attachments:
+            if attachment.startswith("audio"):
+                audio = attachment.removeprefix("audio").split("_")
+                self.master.method("audio.delete", {"owner_id": audio[0],
+                                                    "audio_id": audio[1]})
 
     def add(self, where, group, data):
         if group not in where:

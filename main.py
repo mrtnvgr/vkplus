@@ -189,6 +189,7 @@ class Main:
         if hasattr(event, "text"):
             if event.text!="":
                 event.text = list(shlex.split(event.text.replace("&quot;",'"'), posix=False))
+                event.text[0] = event.text[0].lower()
                 if self.config["mention"]!="":
                     if event.text[0]==self.config["mention"]:
                         event.text.pop(0)
