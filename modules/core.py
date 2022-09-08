@@ -73,7 +73,7 @@ class CoreModule:
                 self.parseAudios(event)
                 attachments = self.uploadObjs(event)
                 self.master.sendreply(event, None, attachments)
-                self.cleanAttachments(attachments)
+                #self.cleanAttachments(attachments)
 
     def getAudios(self, event):
         for i in range(len(event.attachments)):
