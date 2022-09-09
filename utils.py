@@ -7,8 +7,8 @@ def check_output(cmd, **kwargs):
     return subprocess.check_output(cmd, **kwargs)
 
 def update():
-    cmds = ("git fetch",
-            "git merge")
+    cmds = (["git", "fetch"],
+            ["git", "merge"])
     for cmd in cmds:
         run(cmd)
     exit(0)
