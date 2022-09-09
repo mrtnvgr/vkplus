@@ -1,6 +1,6 @@
-from utils import run
 import tempfile, os
 import urllib, json
+import utils
 
 class CoreModule:
     def __init__(self, master):
