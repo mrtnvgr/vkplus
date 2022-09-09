@@ -12,7 +12,6 @@ from modules.update import UpdateModule
 
 class Main:
     def __init__(self):
-        self.version = "0.0.1"
         self.reload()
         self.listen()
 
@@ -391,8 +390,11 @@ class Main:
 
     def gethelptext(self, event):
         pr = self.config["prefix"]
+        permhelp = {"pics":       f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) - картинки",
+                    "customPics": f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки",
+                    "core":       f"       {pr}core (кор, коре)/(nightcore, nc, нк, найткор, найткоре)/(softnightcore, snightcore, softnc, snc, снк, софтнайткор, софтнайткоре)/(daycore, dc, дк, дейкор, дэйкор, дейкоре, дэйкоре)/(softdaycore, sdaycore, softdc, sdc, сдк, софтдейкор, софтдэйкор, софтдейкоре, софтдэйкоре) (speed)* - изменить скорость аудиозаписи"}
         text = []
-        text.append(f"VKPlus v{self.version} (github.com/mrtnvgr/vkplus)")
+        text.append(f"VKPlus (github.com/mrtnvgr/vkplus)")
         text.append("Команды:")
         if event.from_me:
             text.append("   Админкие:")
@@ -409,11 +411,12 @@ class Main:
             text.append(f"       {pr}префикс ({pr}prefix) (view,посмотреть,глянуть,current,текущий) - текущий префикс")
             text.append(f"       {pr}апдейт (апдэйт, update) - обновить (требуется установка из git репозитория)")
             text.append(f"       {pr}статус ({pr}status) - статус свитчей")
-        text.append("   Требуются права:")
-        text.append(f"       {pr}pic ({pr}пик, {pr}пикча, {pr}картиночка, {pr}картиночки, {pr}картинка, {pr}картинки) (query)* (purity)* (categories)* - картинки")
-        text.append(f"       {pr}core (кор, коре)/(nightcore, nc, нк, найткор, найткоре)/(softnightcore, snightcore, softnc, snc, снк, софтнайткор, софтнайткоре)/(daycore, dc, дк, дейкор, дэйкор, дейкоре, дэйкоре)/(softdaycore, sdaycore, softdc, sdc, сдк, софтдейкор, софтдэйкор, софтдейкоре, софтдэйкоре) (speed)* - изменить скорость аудиозаписи")
-        text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
+        text.append("   Доступны вам:")
+        for perm in self.config["perms"]:
+            if event.user_id in self.config["perms"][perm] or event.from_me:
+                text.append(permhelp[perm])
         text.append("   Общедоступные:")
+        text.append(f"       {pr}перм ({pr}perm, {pr}perk, {pr}перк, {pr}разрешение, {pr}права) (list,лист,список) (perk/user)* - показать права")
         text.append(f"       {pr}помощь ({pr}хелп, {pr}help, {pr}справка) - справка")
         text.append("* - Optional argument")
         #TODO: text.append("   !антивыход(!ануобратно, !назад) ([on/off],[вкл/выкл],[он/офф(оф)]) - запретить выход из беседы")
