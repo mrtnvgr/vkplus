@@ -342,18 +342,19 @@ class Main:
     def mutedUserHandler(self, event):
         peer_id = str(event.peer_id)
         user_id = str(event.user_id)
-
-        user = None
+        
+        user_elem = None
         if f"{peer_id}|{user_id}" in self.config["users"]:
             user_elem = f"{peer_id}|{user_id}"
         elif peer_id in self.config["users"]:
             user_elem = peer_id
-        if user!=None:
+        if user_elem!=None:
             user = self.config["users"][user_elem]
             if "mute" in user:
                 if "time" in user["mute"]:
-                    if int(time.time())>=user["mute"]["time"]:
+                    if int(time.time())>=user["mute"]["time"] and user["mute"]["time"]>0:
                         self.config["users"][user_elem].pop("mute")
+                        self.saveConfig()
                     else:
                         self.deleteMessage(event.message_id)
 
