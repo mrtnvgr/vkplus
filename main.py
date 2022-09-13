@@ -8,6 +8,7 @@ import requests
 # TODO: раставить по порядку
 from modules.core import CoreModule
 from modules.perm import PermissionsModule
+from modules.invite import InviteModule
 from modules.update import UpdateModule
 
 class Main:
@@ -32,6 +33,7 @@ class Main:
         self.core_mod = CoreModule(self)
         self.perm_mod = PermissionsModule(self)
         self.update_mod = UpdateModule(self)
+        self.invite_mod = InviteModule(self)
 
     def checkConfigHealth(self):
         if "prefix" not in self.config:
@@ -211,6 +213,7 @@ class Main:
                 self.kickHandler(event)
                 self.perm_mod.permHandler(event)
                 self.update_mod.updateHandler(event)
+                self.invite_mod.inviteHandler(event)
                 self.statusHandler(event)
             self.picsHandler(event)
             self.core_mod.coreHandler(event)
@@ -402,6 +405,7 @@ class Main:
             text.append(f"       {pr}мут ({pr}молчи, {pr}помолчи, {pr}молчать, {pr}терпи, {pr}потерпи, {pr}завали, {pr}заткнись, {pr}mute, {pr}mut) (user) - мут")
             text.append(f"       {pr}анмут ({pr}размут, {pr}unmute, {pr}unmut) (user) - анмут")
             text.append(f"       {pr}кик (kick, пнуть, ануотсюда, кыш, пшел, пшёл, вон, исключить) - кик")
+            text.append(f"       {pr}инвайт (invite, заходи, пригласить) - пригласить пользователя в беседу")
             text.append(f"       {pr}включить ({pr}вкл, {pr}on, {pr}он) - включить ограничения")
             text.append(f"       {pr}выключить ({pr}выкл, {pr}офф, {pr}оф, {pr}off) - выключить ограничения")
             text.append(f"       {pr}silent ({pr}сайлент, {pr}тихо) - включить тихий режим")
