@@ -57,6 +57,7 @@ class CoreModule:
                 self.typecore = "soft nightcore"
             elif speed<=float(self.speed["nc"]):
                 self.typecore = "nightcore"
+            self.typecore_default = False
 
     def coreHandler(self, event):
         if event.user_id in self.master.config["perms"]["core"] or event.from_me:
