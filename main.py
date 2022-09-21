@@ -61,6 +61,31 @@ class Main:
             self.config["photos"]["purity"] = "100"
         if "ids" not in self.config["photos"]:
             self.config["photos"]["ids"] = []
+
+        if "aliases" not in self.config:
+            self.config["aliases"] = {}
+
+        if "restSwitch" not in self.config["aliases"]:
+            self.config["aliases"]["restSwitch"] = {}
+        if "on" not in self.config["aliases"]["restSwitch"]:
+            self.config["aliases"]["restSwitch"]["on"] = ("вкл", "он", "on", "включить")
+        if "off" not in self.config["aliases"]["restSwitch"]:
+            self.config["aliases"]["restSwitch"]["off"] = ("выкл", "офф", "оф", "off", "выключить")
+
+        if "silentSwitch" not in self.config["aliases"]:
+            self.config["aliases"]["silentSwitch"] = {}
+        if "on" not in self.config["aliases"]["silentSwitch"]:
+            self.config["aliases"]["silentSwitch"]["on"] = ("silent", "сайлент", "тихо")
+        if "off" not in self.config["aliases"]["silentSwitch"]:
+            self.config["aliases"]["silentSwitch"]["off"] = ("unsilent", "ансайлент", "громко")
+        
+        if "mute" not in self.config["aliases"]:
+            self.config["aliases"]["mute"] = {}
+        if "mute" not in self.config["aliases"]["mute"]:
+            self.config["aliases"]["mute"]["mute"] = ("мут", "молчи", "помолчи", "молчать", "терпи", "потерпи", "завали", "заткнись", "mute", "mut")
+        if "unmute" not in self.config["aliases"]["mute"]:
+            self.config["aliases"]["mute"]["unmute"] = ("размут", "анмут", "unmute", "unmut")
+
         self.checkPermsHealth()
 
     def checkPermsHealth(self):
@@ -221,28 +246,26 @@ class Main:
             self.helpHandler(event)
 
     def restrictionSwitchHandler(self, event):
-        if event.text[0] in ("вкл", "он", "on", "включить"):
+        if event.text[0] in self.config["aliases"]["restSwitch"]["on"]:
             self.config["restrictions"] = True
             self.saveConfig()
             self.sendme(event, "Ограничения включены.")
-        elif event.text[0] in ("выкл", "офф", "оф", "off", "выключить"):
+        elif event.text[0] in self.config["aliases"]["restSwitch"]["off"]:
             self.config["restrictions"] = False
             self.saveConfig()
             self.sendme(event, "Ограничения выключены.")
 
     def silentSwitchHandler(self, event):
-        if event.text[0] in ("silent", "сайлент", "тихо"):
+        if event.text[0] in self.config["aliases"]["silentSwitch"]["on"]:
             self.config["silent"] = True
             self.saveConfig()
             self.deleteMessage(event.message_id)
-        elif event.text[0] in ("unsilent", "ансайлент", "громко"):
+        elif event.text[0] in self.config["aliases"]["silentSwitch"]["off"]:
             self.config["silent"] = False
             self.saveConfig()
 
     def muteHandler(self, event):
-        if event.text[0] in ("мут", "молчи", "помолчи", "молчать",
-                       "терпи", "потерпи", "завали", "заткнись",
-                       "mute", "mut"):
+        if event.text[0] in self.config["aliases"]["mute"]["mute"]:
             peer_id = str(event.peer_id)
             if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
@@ -266,7 +289,7 @@ class Main:
                     self.sendreply(event, f"Все замучены на {time}.")
 
     def unMuteHandler(self, event):
-        if event.text[0] in ("размут", "анмут", "unmute", "unmut"):
+        if event.text[0] in self.config["aliases"]["mute"]["unmute"]:
             peer_id = str(event.peer_id)
             if len(event.text)>1:
                 user_id, user_name = self.getmentioninfo(event)
