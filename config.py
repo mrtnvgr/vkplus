@@ -1,5 +1,6 @@
 import json, os
 
+
 class Config:
     def __init__(self, master, path):
         self.master = master
@@ -8,7 +9,7 @@ class Config:
         self.master.config = self.config
 
     def get(self):
-        """ Get config """
+        """Get config"""
 
         if os.path.exists(self.path):
             self.config = json.load(open(self.path))
@@ -19,7 +20,7 @@ class Config:
         self.check()
 
     def check(self):
-        """ All config checks """
+        """All config checks"""
 
         # Default values
         self.addDefaultValue("prefix", "%")
@@ -39,36 +40,58 @@ class Config:
         self.addDefaultValue("aliases", {})
 
         self.addDefaultValue("aliases.restSwitch", {})
-        self.addDefaultValue("aliases.restSwitch.on", ("вкл", "он", "on", "включить") )
-        self.addDefaultValue("aliases.restSwitch.off", ("выкл", "офф", "оф", "off", "выключить") )
+        self.addDefaultValue("aliases.restSwitch.on", ("вкл", "он", "on", "включить"))
+        self.addDefaultValue(
+            "aliases.restSwitch.off", ("выкл", "офф", "оф", "off", "выключить")
+        )
 
         self.addDefaultValue("aliases.silentSwitch", {})
-        self.addDefaultValue("aliases.silentSwitch.on", ("silent", "сайлент", "тихо") )
-        self.addDefaultValue("aliases.silentSwitch.off", ("unsilent", "ансайлент", "громко") )
+        self.addDefaultValue("aliases.silentSwitch.on", ("silent", "сайлент", "тихо"))
+        self.addDefaultValue(
+            "aliases.silentSwitch.off", ("unsilent", "ансайлент", "громко")
+        )
 
         self.addDefaultValue("aliases.mute", {})
-        self.addDefaultValue("aliases.mute.mute", ("мут", "молчи", "помолчи", "молчать", "терпи", "потерпи", "завали", "заткнись", "mute", "mut") )
-        self.addDefaultValue("aliases.mute.unmute", ("размут", "анмут", "unmute", "unmut") )
+        self.addDefaultValue(
+            "aliases.mute.mute",
+            (
+                "мут",
+                "молчи",
+                "помолчи",
+                "молчать",
+                "терпи",
+                "потерпи",
+                "завали",
+                "заткнись",
+                "mute",
+                "mut",
+            ),
+        )
+        self.addDefaultValue(
+            "aliases.mute.unmute", ("размут", "анмут", "unmute", "unmut")
+        )
 
         # Default permissions
         self.checkPermissions()
 
     def checkPermissions(self):
-        """ Check permission values """
+        """Check permission values"""
         self.addDefaultValue("perms", {})
-        
+
         for perm in ("pics", "customPics", "core"):
             self.addDefaultValue(f"perms.{perm}", [])
 
         # Convert user names to user ids
         for perm in self.config["perms"]:
-            for index,elem in enumerate(self.config["perms"][perm]):
+            for index, elem in enumerate(self.config["perms"][perm]):
                 if type(elem) is str:
-                    self.config["perms"][perm][index] = self.master.getUser(elem)[0]["id"]
+                    self.config["perms"][perm][index] = self.master.getUser(elem)[0][
+                        "id"
+                    ]
 
     def addDefaultValue(self, keys, value):
-        """ Add default value to config """
-        
+        """Add default value to config"""
+
         keys = keys.split(".")
         config = self.config
 
