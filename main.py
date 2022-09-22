@@ -165,7 +165,7 @@ class Main:
     def cmdHandler(self, event):
         if hasattr(event, "text"):
             if event.from_me:
-                self.restrictions_switch_mod.handler(event)
+                self.restriction_switch_mod.handler(event)
                 self.silent_switch_mod.handler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
