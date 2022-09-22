@@ -71,6 +71,16 @@ class Config:
             "aliases.mute.unmute", ("размут", "анмут", "unmute", "unmut")
         )
 
+        self.addDefaultValue("aliases.perm", {})
+        self.addDefaultValue(
+            "aliases.perm.cmd", ("perm", "перм", "perk", "перк", "разрешение", "права")
+        )
+        self.addDefaultValue("aliases.perm.add", ("добавить", "дать", "add"))
+        self.addDefaultValue(
+            "aliases.perm.delete", ("удалить", "забрать", "убрать", "delete", "del")
+        )
+        self.addDefaultValue("aliases.perm.list", ("list", "лист", "список"))
+
         # Default permissions
         self.checkPermissions()
 
