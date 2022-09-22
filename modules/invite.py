@@ -1,6 +1,8 @@
-class InviteModule:
-    def __init__(self, master):
-        self.master = master
+from module import Module
+
+class InviteModule(Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def inviteHandler(self, event):
         if event.text[0] in self.master.config["aliases"]["invite"]:

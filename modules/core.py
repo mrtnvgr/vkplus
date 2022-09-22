@@ -2,9 +2,11 @@ import tempfile, os
 import urllib, json
 import utils
 
-class CoreModule:
-    def __init__(self, master):
-        self.master = master
+from module import Module
+
+class CoreModule(Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.reset()
         self.speed = {"nc": "1.35",
                       "snc": "1.17",

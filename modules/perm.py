@@ -1,6 +1,8 @@
-class PermissionsModule:
-    def __init__(self, master):
-        self.master = master
+from module import Module
+
+class PermissionsModule(Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def permHandler(self, event):
         if event.text[0] in self.master.config["aliases"]["perm"]["cmd"]:
