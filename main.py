@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
-import vk_api, os, json, time, re, shlex
+import vk_api, json, time, re, shlex
 from random import shuffle
 import requests
 
-# TODO: раставить по порядку
 from modules.core import CoreModule
 from modules.perm import PermissionsModule
 from modules.invite import InviteModule
 from modules.update import UpdateModule
+
+import config
 
 class Main:
     def __init__(self):
@@ -17,16 +18,11 @@ class Main:
         self.listen()
 
     def reload(self):
-        if os.path.exists("config.json"):
-            self.config = json.load(open("config.json"))
-        else:
-            token = input("VK ADMIN API TOKEN: ")
-            self.config = {"token": token}
+        config.Config(self, "config.json")
+        self.saveConfig()
         self.photos = []
         self.photos_page = 0
         self.initVkApi()
-        self.checkConfigHealth()
-        self.saveConfig()
         self.loadModules()
 
     def loadModules(self):
@@ -35,79 +31,13 @@ class Main:
         self.update_mod = UpdateModule(self)
         self.invite_mod = InviteModule(self)
 
-    def checkConfigHealth(self):
-        if "prefix" not in self.config:
-            self.config["prefix"] = "%"
-        if "mention" not in self.config:
-            self.config["mention"] = ""
-
-
-        if "users" not in self.config:
-            self.config["users"] = {}
-        if "restrictions" not in self.config:
-            self.config["restrictions"] = True
-        if "silent" not in self.config:
-            self.config["silent"] = False
-
-        if "photos" not in self.config:
-            self.config["photos"] = {}
-        if "token" not in self.config["photos"]:
-            self.config["photos"]["token"] = ""
-        if "query" not in self.config["photos"]:
-            self.config["photos"]["query"] = ""
-        if "categories" not in self.config["photos"]:
-            self.config["photos"]["categories"] = "010"
-        if "purity" not in self.config["photos"]:
-            self.config["photos"]["purity"] = "100"
-        if "ids" not in self.config["photos"]:
-            self.config["photos"]["ids"] = []
-
-        if "aliases" not in self.config:
-            self.config["aliases"] = {}
-
-        if "restSwitch" not in self.config["aliases"]:
-            self.config["aliases"]["restSwitch"] = {}
-        if "on" not in self.config["aliases"]["restSwitch"]:
-            self.config["aliases"]["restSwitch"]["on"] = ("вкл", "он", "on", "включить")
-        if "off" not in self.config["aliases"]["restSwitch"]:
-            self.config["aliases"]["restSwitch"]["off"] = ("выкл", "офф", "оф", "off", "выключить")
-
-        if "silentSwitch" not in self.config["aliases"]:
-            self.config["aliases"]["silentSwitch"] = {}
-        if "on" not in self.config["aliases"]["silentSwitch"]:
-            self.config["aliases"]["silentSwitch"]["on"] = ("silent", "сайлент", "тихо")
-        if "off" not in self.config["aliases"]["silentSwitch"]:
-            self.config["aliases"]["silentSwitch"]["off"] = ("unsilent", "ансайлент", "громко")
-        
-        if "mute" not in self.config["aliases"]:
-            self.config["aliases"]["mute"] = {}
-        if "mute" not in self.config["aliases"]["mute"]:
-            self.config["aliases"]["mute"]["mute"] = ("мут", "молчи", "помолчи", "молчать", "терпи", "потерпи", "завали", "заткнись", "mute", "mut")
-        if "unmute" not in self.config["aliases"]["mute"]:
-            self.config["aliases"]["mute"]["unmute"] = ("размут", "анмут", "unmute", "unmut")
-
-        self.checkPermsHealth()
-
-    def checkPermsHealth(self):
-        if "perms" not in self.config:
-            self.config["perms"] = {}
-        for perm in ("pics", "customPics",
-                     "core"):
-            if perm not in self.config["perms"]:
-                self.config["perms"][perm] = []
-
-        for perm in self.config["perms"]:
-            for i,elem in enumerate(self.config["perms"][perm]):
-                if type(elem) is str:
-                    self.config["perms"][perm][i] = self.getUser(elem)[0]["id"]
-                    
-
-    def saveConfig(self):
-        json.dump(self.config, fp=open("config.json", "w"), indent=4)
-
     def initVkApi(self):
         self.vk = vk_api.VkApi(token=self.config["token"])
         self.longpoll = VkLongPoll(self.vk)
+
+    def saveConfig(self):
+        """ Save config """
+        return json.dump(self.config, open("config.json", "w"), indent=4, ensure_ascii=False)
 
     def sendreply(self, event, text, attachment=[], reply=True):
         if not self.config["silent"]:
