@@ -3,10 +3,10 @@ class PermissionsModule:
         self.master = master
 
     def permHandler(self, event):
-        if event.text[0] in self.master.config["aliases"]["perms"]["cmd"]:
+        if event.text[0] in self.master.config["aliases"]["perm"]["cmd"]:
             if len(event.text) == 4:
                 user_id, user_name = self.master.getmentioninfo(event)
-                if event.text[1] in self.config["aliases"]["perms"]["add"]:
+                if event.text[1] in self.master.config["aliases"]["perms"]["add"]:
                     if event.text[3] in self.master.config["perms"]:
                         self.master.config["perms"][event.text[3]].append(int(user_id))
                         self.master.saveConfig()
@@ -14,7 +14,7 @@ class PermissionsModule:
                             event,
                             f"{user_name} теперь может использовать {event.text[3]}.",
                         )
-                elif event.text[1] in self.config["aliases"]["perms"]["delete"]:
+                elif event.text[1] in self.master.config["aliases"]["perms"]["delete"]:
                     if event.text[3] in self.master.config["perms"]:
                         for id in self.master.config["perms"][event.text[3]]:
                             if id == user_id:
@@ -27,7 +27,7 @@ class PermissionsModule:
                                     f"{user_name} теперь нельзя использовать {event.text[3]}.",
                                 )
             if len(event.text) >= 2:
-                if event.text[1].lower() in self.config["aliases"]["perms"]["list"]:
+                if event.text[1].lower() in self.master.config["aliases"]["perms"]["list"]:
                     if len(event.text) == 2:
                         self.master.sendreply(
                             event, f"Perks: {', '.join(self.master.config['perms'])}"

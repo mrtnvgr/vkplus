@@ -3,7 +3,7 @@ class InviteModule:
         self.master = master
 
     def inviteHandler(self, event):
-        if event.text[0] in self.config["aliases"]["invite"]:
+        if event.text[0] in self.master.config["aliases"]["invite"]:
             if len(event.text)>1:
                 user_id, _ = self.master.getmentioninfo(event)
                 if user_id!=None:

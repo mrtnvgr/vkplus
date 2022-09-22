@@ -20,19 +20,19 @@ class CoreModule:
         self.typecore_default = True
         self.typecore = None
         if len(event.text)==1:
-            if event.text[0] in self.config["aliases"]["core"]["nightcore"]:
+            if event.text[0] in self.master.config["aliases"]["core"]["nightcore"]:
                 event.text.append(self.speed["nc"])
                 self.typecore = "nightcore"
-            elif event.text[0] in self.config["aliases"]["core"]["softnightcore"]:
+            elif event.text[0] in self.master.config["aliases"]["core"]["softnightcore"]:
                 event.text.append(self.speed["snc"])
                 self.typecore = "soft nightcore"
-            elif event.text[0] in self.config["aliases"]["core"]["daycore"]:
+            elif event.text[0] in self.master.config["aliases"]["core"]["daycore"]:
                 event.text.append(self.speed["dc"])
                 self.typecore = "daycore"
-            elif event.text[0] in self.config["aliases"]["core"]["softdaycore"]:
+            elif event.text[0] in self.master.config["aliases"]["core"]["softdaycore"]:
                 event.text.append(self.speed["sdc"])
                 self.typecore = "soft daycore"
-            elif event.text[0] in self.config["aliases"]["core"]["core"]:
+            elif event.text[0] in self.master.config["aliases"]["core"]["core"]:
                 event.text.append(self.speed["nc"])
                 self.typecore = "nightcore"
             else:

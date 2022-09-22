@@ -5,6 +5,6 @@ class UpdateModule:
         self.master = master
 
     def updateHandler(self, event):
-        if event.text[0] in self.config["aliases"]["update"]:
+        if event.text[0] in self.master.config["aliases"]["update"]:
             if event.from_me:
                 utils.update()
