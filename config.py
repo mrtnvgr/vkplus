@@ -81,6 +81,68 @@ class Config:
         )
         self.addDefaultValue("aliases.perm.list", ("list", "лист", "список"))
 
+        self.addDefaultValue("aliases.update", ("апдейт", "апдэйт", "update"))
+
+        self.addDefaultValue(
+            "aliases.invite", ("инвайт", "invite", "заходи", "пригласить")
+        )
+
+        self.addDefaultValue("aliases.status", ("status", "статус"))
+
+        self.addDefaultValue(
+            "aliases.pics",
+            ("картиночки", "картинки", "картиночка", "картинка", "pic", "пикча", "пик"),
+        )
+
+        self.addDefaultValue("aliases.core", {})
+        self.addDefaultValue(
+            "aliases.core.nightcore", ("nightcore", "nc", "нк", "найткор", "найткоре")
+        )
+        self.addDefaultValue(
+            "aliases.core.softnightcore",
+            (
+                "softnightcore",
+                "snightcore",
+                "softnc",
+                "snc",
+                "снк",
+                "софтнайткор",
+                "софтнайткоре",
+            ),
+        )
+        self.addDefaultValue(
+            "aliases.core.daycore",
+            ("daycore", "dc", "дк", "дейкор", "дэйкор", "дейкоре", "дэйкоре"),
+        )
+        self.addDefaultValue(
+            "aliases.core.softdaycore",
+            (
+                "softdaycore",
+                "sdaycore",
+                "softdc",
+                "sdc",
+                "сдк",
+                "софтдейкор",
+                "софтдэйкор",
+                "софтдейкоре",
+                "софтдэйкоре",
+            ),
+        )
+        self.addDefaultValue("aliases.core.core", ("core", "коре", "кор"))
+
+        self.addDefaultValue("aliases.prefix", {})
+        self.addDefaultValue("aliases.prefix.prefix", ("префикс", "prefix"))
+        self.addDefaultValue(
+            "aliases.prefix.current",
+            ("view", "посмотреть", "глянуть", "current", "текущий"),
+        )
+        self.addDefaultValue(
+            "aliases.prefix.change",
+            ("change", "поменять", "изменить", "set", "поставить"),
+        )
+
+        self.addDefaultValue("aliases.help", ("хелп", "help", "помощь", "справка"))
+
         # Default permissions
         self.checkPermissions()
 

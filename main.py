@@ -248,18 +248,18 @@ class Main:
                     self.sendreply(event, text=f"{user['first_name']} {user['last_name']} исключен.")
 
     def helpHandler(self, event):
-        if event.text[0] in ("хелп", "help", "помощь", "справка"):
+        if event.text[0] in self.config["aliases"]["help"]:
             if not event.from_me:
                 self.sendreply(event, self.gethelptext(event))
             else:
                 self.sendme(event, self.gethelptext(event))
 
     def statusHandler(self, event):
-        if event.text[0] in ("status", "статус"):
+        if event.text[0] in self.config["aliases"]["status"]:
             self.sendme(event, self.getstatusinfo(event))
 
     def picsHandler(self, event):
-        if event.text[0] in ("картиночки", "картинки", "картиночка", "картинка", "pic", "пикча", "пик"):
+        if event.text[0] in self.config["aliases"]["pics"]:
             if len(event.text)>1 and (event.user_id in self.config["perms"]["customPics"] or event.from_me):
                 if len(event.text)>2:
                     purity = event.text[2]
@@ -281,12 +281,12 @@ class Main:
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
 
     def prefixHandler(self, event):
-        if event.text[0] in ("префикс", "prefix"):
+        if event.text[0] in self.config["aliases"]["prefix"]["prefix"]:
             if len(event.text)==2:
-                if event.text[1] in ("view","посмотреть","глянуть","current","текущий"):
+                if event.text[1] in self.config["aliases"]["prefix"]["current"]:
                     self.sendreply(event, f"Текущий префикс: ({self.config['prefix']})")
             elif len(event.text)==3 and event.from_me:
-                if event.text[1] in ("change","поменять","изменить","set","поставить"):
+                if event.text[1] in self.config["aliases"]["prefix"]["change"]:
                     if event.text[2]!="\\":
                         self.config["prefix"] = event.text[2]
                         self.saveConfig()
