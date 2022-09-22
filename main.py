@@ -7,6 +7,7 @@ import requests
 
 from modules.core import CoreModule
 from modules.restrictionswitch import RestrictionSwitchModule
+from modules.silentswitch import SilentSwitchModule
 from modules.perm import PermissionsModule
 from modules.invite import InviteModule
 from modules.update import UpdateModule
@@ -29,6 +30,7 @@ class Main:
     def loadModules(self):
         self.core_mod = CoreModule(self)
         self.restriction_switch_mod = RestrictionSwitchModule(self)
+        self.silent_switch_mod = SilentSwitchModule(self)
         self.perm_mod = PermissionsModule(self)
         self.update_mod = UpdateModule(self)
         self.invite_mod = InviteModule(self)
@@ -164,7 +166,7 @@ class Main:
         if hasattr(event, "text"):
             if event.from_me:
                 self.restrictions_switch_mod.handler(event)
-                self.silentSwitchHandler(event)
+                self.silent_switch_mod.handler(event)
                 self.muteHandler(event)
                 self.unMuteHandler(event)
                 self.kickHandler(event)
@@ -176,15 +178,6 @@ class Main:
             self.core_mod.coreHandler(event)
             self.prefixHandler(event)
             self.helpHandler(event)
-
-    def silentSwitchHandler(self, event):
-        if event.text[0] in self.config["aliases"]["silentSwitch"]["on"]:
-            self.config["silent"] = True
-            self.saveConfig()
-            self.deleteMessage(event.message_id)
-        elif event.text[0] in self.config["aliases"]["silentSwitch"]["off"]:
-            self.config["silent"] = False
-            self.saveConfig()
 
     def muteHandler(self, event):
         if event.text[0] in self.config["aliases"]["mute"]["mute"]:
