@@ -82,6 +82,9 @@ class MuteModule(Module):
                         # Unmute user
                         self.master.config["users"][f"{peer_id}|{user_id}"].pop("mute")
 
+                        # Clean empty users
+                        self.cleanEmptyUsers()
+
                         # Save configuration
                         self.master.saveConfig()
 
@@ -109,8 +112,25 @@ class MuteModule(Module):
                             # Unmute user
                             self.master.config["users"][user].pop("mute")
 
+                    # Clean empty users
+                    self.cleanEmptyUsers()
+
                     # Save configuration
                     self.master.saveConfig()
 
                     # Send reply message
                     self.master.sendreply(event, "Все размучены.")
+
+    def cleanEmptyUsers(self):
+
+        # Iterate through users
+        for user in self.master.config["users"].copy():
+
+            # Get user dict
+            user_dict = self.master.config["users"][user]
+
+            # Check if user dict is empty
+            if user_dict == {}:
+
+                # Pop user from users
+                self.master.config["users"].pop(user)
