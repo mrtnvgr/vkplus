@@ -87,6 +87,21 @@ class Config:
             "aliases.invite", ("инвайт", "invite", "заходи", "пригласить")
         )
 
+        self.addDefaultValue(
+            "aliases.kick",
+            (
+                "кик",
+                "kick",
+                "пнуть",
+                "ануотсюда",
+                "кыш",
+                "пшел",
+                "пшёл",
+                "вон",
+                "исключить",
+            ),
+        )
+
         self.addDefaultValue("aliases.status", ("status", "статус"))
 
         self.addDefaultValue(

@@ -10,6 +10,7 @@ from modules.restrictionswitch import RestrictionSwitchModule
 from modules.silentswitch import SilentSwitchModule
 from modules.perm import PermissionsModule
 from modules.invite import InviteModule
+from modules.kick import KickModule
 from modules.update import UpdateModule
 from modules.mute import MuteModule
 
@@ -35,6 +36,7 @@ class Main:
         self.perm_mod = PermissionsModule(self)
         self.update_mod = UpdateModule(self)
         self.invite_mod = InviteModule(self)
+        self.kick_mod = KickModule(self)
         self.mute_mod = MuteModule(self)
 
     def initVkApi(self):
@@ -171,7 +173,7 @@ class Main:
                 self.silent_switch_mod.handler(event)
                 self.mute_mod.muteHandler(event)
                 self.mute_mod.unMuteHandler(event)
-                self.kickHandler(event)
+                self.kick_mod.handler(event)
                 self.perm_mod.permHandler(event)
                 self.update_mod.updateHandler(event)
                 self.invite_mod.inviteHandler(event)
@@ -180,15 +182,6 @@ class Main:
             self.core_mod.coreHandler(event)
             self.prefixHandler(event)
             self.helpHandler(event)
-
-    def kickHandler(self, event):
-        if event.text[0] in ("кик","kick","пнуть","ануотсюда","кыш","пшел","пшёл","вон","исключить"):
-            if len(event.text)>1:
-                user_id, user_name = self.getmentioninfo(event)
-                if user_id!=None:
-                    user = self.getUser(user_id)[0]
-                    self.method("messages.removeChatUser", {"chat_id": event.chat_id, "user_id": user['id']})
-                    self.sendreply(event, text=f"{user['first_name']} {user['last_name']} исключен.")
 
     def helpHandler(self, event):
         if event.text[0] in self.config["aliases"]["help"]:
