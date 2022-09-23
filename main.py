@@ -13,6 +13,7 @@ from modules.invite import InviteModule
 from modules.kick import KickModule
 from modules.update import UpdateModule
 from modules.mute import MuteModule
+from modules.prefix import PrefixModule
 
 import config
 
@@ -38,6 +39,7 @@ class Main:
         self.invite_mod = InviteModule(self)
         self.kick_mod = KickModule(self)
         self.mute_mod = MuteModule(self)
+        self.prefix_mod = PrefixModule(self)
 
     def initVkApi(self):
         self.vk = vk_api.VkApi(token=self.config["token"])
@@ -180,7 +182,7 @@ class Main:
                 self.statusHandler(event)
             self.picsHandler(event)
             self.core_mod.coreHandler(event)
-            self.prefixHandler(event)
+            self.prefix_mod.handler(event)
             self.helpHandler(event)
 
     def helpHandler(self, event):
@@ -215,18 +217,6 @@ class Main:
             else:
                 attachment = self.uploadPhoto(photo_url)
                 self.sendreply(event, "", attachment=[f"photo{attachment['owner_id']}_{attachment['id']}_{attachment['access_key']}"])
-
-    def prefixHandler(self, event):
-        if event.text[0] in self.config["aliases"]["prefix"]["prefix"]:
-            if len(event.text)==2:
-                if event.text[1] in self.config["aliases"]["prefix"]["current"]:
-                    self.sendreply(event, f"Текущий префикс: ({self.config['prefix']})")
-            elif len(event.text)==3 and event.from_me:
-                if event.text[1] in self.config["aliases"]["prefix"]["change"]:
-                    if event.text[2]!="\\":
-                        self.config["prefix"] = event.text[2]
-                        self.saveConfig()
-                        self.sendreply(event, f"Префикс изменён на ({event.text[2]})")
 
     def restrictionsHandler(self, event):
         self.mutedUserHandler(event)

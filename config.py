@@ -156,6 +156,8 @@ class Config:
             ("change", "поменять", "изменить", "set", "поставить"),
         )
 
+        self.addDefaultValue("aliases.prefix.invalidlist", ("\\", " ", "", '""', "''"))
+
         self.addDefaultValue("aliases.help", ("хелп", "help", "помощь", "справка"))
 
         # Default permissions
