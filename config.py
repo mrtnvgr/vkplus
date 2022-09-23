@@ -114,7 +114,7 @@ class Config:
             "aliases.core.nightcore", ("nightcore", "nc", "нк", "найткор", "найткоре")
         )
         self.addDefaultValue(
-            "aliases.core.softnightcore",
+            "aliases.core.soft nightcore",
             (
                 "softnightcore",
                 "snightcore",
@@ -130,7 +130,7 @@ class Config:
             ("daycore", "dc", "дк", "дейкор", "дэйкор", "дейкоре", "дэйкоре"),
         )
         self.addDefaultValue(
-            "aliases.core.softdaycore",
+            "aliases.core.soft daycore",
             (
                 "softdaycore",
                 "sdaycore",
