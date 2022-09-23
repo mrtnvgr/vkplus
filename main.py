@@ -11,6 +11,7 @@ from modules.silentswitch import SilentSwitchModule
 from modules.perm import PermissionsModule
 from modules.invite import InviteModule
 from modules.update import UpdateModule
+from modules.mute import MuteModule
 
 import config
 
@@ -34,6 +35,7 @@ class Main:
         self.perm_mod = PermissionsModule(self)
         self.update_mod = UpdateModule(self)
         self.invite_mod = InviteModule(self)
+        self.mute_mod = MuteModule(self)
 
     def initVkApi(self):
         self.vk = vk_api.VkApi(token=self.config["token"])
@@ -167,8 +169,8 @@ class Main:
             if event.from_me:
                 self.restriction_switch_mod.handler(event)
                 self.silent_switch_mod.handler(event)
-                self.muteHandler(event)
-                self.unMuteHandler(event)
+                self.mute_mod.muteHandler(event)
+                self.mute_mod.unMuteHandler(event)
                 self.kickHandler(event)
                 self.perm_mod.permHandler(event)
                 self.update_mod.updateHandler(event)
@@ -178,50 +180,6 @@ class Main:
             self.core_mod.coreHandler(event)
             self.prefixHandler(event)
             self.helpHandler(event)
-
-    def muteHandler(self, event):
-        if event.text[0] in self.config["aliases"]["mute"]["mute"]:
-            peer_id = str(event.peer_id)
-            if len(event.text)>1:
-                user_id, user_name = self.getmentioninfo(event)
-                if len(event.text)==3:
-                    time = event.text[2]
-                    event.text[2] = self.gettime(event.text[2])
-                else:
-                    event.text.append(-1)
-                    time = event.text[2]
-                if user_name!="$all":
-                    if f"{peer_id}|{user_id}" not in self.config["users"]:
-                        self.config["users"][f"{peer_id}|{user_id}"] = {}
-                    self.config["users"][f"{peer_id}|{user_id}"]["mute"] = {"time": event.text[2]}
-                    self.saveConfig()
-                    self.sendreply(event, f"{user_name} замучен на {time}.")
-                else:
-                    if peer_id not in self.config["users"]:
-                        self.config["users"][peer_id] = {}
-                    self.config["users"][peer_id]["mute"] = {"time": event.text[2]}
-                    self.saveConfig()
-                    self.sendreply(event, f"Все замучены на {time}.")
-
-    def unMuteHandler(self, event):
-        if event.text[0] in self.config["aliases"]["mute"]["unmute"]:
-            peer_id = str(event.peer_id)
-            if len(event.text)>1:
-                user_id, user_name = self.getmentioninfo(event)
-                if user_name!="$all":
-                    if f"{peer_id}|{user_id}" in self.config["users"]:
-                        self.config["users"][f"{peer_id}|{user_id}"].pop("mute")
-                        self.sendreply(event, f"{user_name} размучен.")
-                        self.saveConfig()
-                        return
-            if peer_id in self.config["users"]:
-                if "mute" in self.config["users"][peer_id]:
-                    self.config["users"][peer_id].pop("mute")
-            for user in self.config["users"]:
-                if user.split("|")[0]==peer_id:
-                    self.config["users"][user].pop("mute")
-            self.saveConfig()
-            self.sendreply(event, "Все размучены.")
 
     def kickHandler(self, event):
         if event.text[0] in ("кик","kick","пнуть","ануотсюда","кыш","пшел","пшёл","вон","исключить"):
