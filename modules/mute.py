@@ -29,7 +29,7 @@ class MuteModule(Module):
                 # Mute only one user
                 if user_name != "$all":
 
-                    # Set user dict if it does not exists
+                    # Set user dict if it does not exist
                     if f"{peer_id}|{user_id}" not in self.master.config["users"]:
                         self.master.config["users"][f"{peer_id}|{user_id}"] = {}
 
@@ -47,7 +47,7 @@ class MuteModule(Module):
                 # Mute all users from chat
                 else:
 
-                    # Set chat dict if it does not exists
+                    # Set chat dict if it does not exist
                     if peer_id not in self.master.config["users"]:
                         self.master.config["users"][peer_id] = {}
 

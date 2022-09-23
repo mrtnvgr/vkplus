@@ -75,7 +75,7 @@ class Config:
         self.addDefaultValue(
             "aliases.perm.cmd", ("perm", "перм", "perk", "перк", "разрешение", "права")
         )
-        self.addDefaultValue("aliases.perm.add", ("добавить", "дать", "add"))
+        self.addDefaultValue("aliases.perm.add", ("добавить", "дать", "add", "give"))
         self.addDefaultValue(
             "aliases.perm.delete", ("удалить", "забрать", "убрать", "delete", "del")
         )
