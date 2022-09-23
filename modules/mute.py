@@ -6,7 +6,7 @@ class MuteModule(Module):
         super().__init__(*args, **kwargs)
 
     def muteHandler(self, event):
-        if event.text[0] in self.config["aliases"]["mute"]["mute"]:
+        if event.text[0] in self.master.config["aliases"]["mute"]["mute"]:
 
             peer_id = str(event.peer_id)
 
