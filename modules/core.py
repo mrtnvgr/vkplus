@@ -76,6 +76,10 @@ class CoreModule(Module):
             # Get core type
             self.getCoreType(event)
 
+            # Check for core type
+            if self.typecore == None:
+                return
+
             # Check if message have attachments
             if event.attachments != {}:
 
@@ -111,6 +115,8 @@ class CoreModule(Module):
                 # Send audios
                 self.master.sendreply(event, None, attachments)
                 # self.cleanAttachments(attachments)
+
+                return True
 
     def getAudios(self, event):
 

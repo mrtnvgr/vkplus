@@ -170,20 +170,41 @@ class Main:
 
     def cmdHandler(self, event):
         if hasattr(event, "text"):
+
+            admin_modules = ()
+            
+            # Check if event is from admin
             if event.from_me:
-                self.restriction_switch_mod.handler(event)
-                self.silent_switch_mod.handler(event)
-                self.mute_mod.muteHandler(event)
-                self.mute_mod.unMuteHandler(event)
-                self.kick_mod.handler(event)
-                self.perm_mod.permHandler(event)
-                self.update_mod.updateHandler(event)
-                self.invite_mod.inviteHandler(event)
-                self.statusHandler(event)
-            self.picsHandler(event)
-            self.core_mod.coreHandler(event)
-            self.prefix_mod.handler(event)
-            self.helpHandler(event)
+
+                # Add admin modules
+                admin_modules = (
+                    self.restriction_switch_mod.handler,
+                    self.silent_switch_mod.handler,
+                    self.mute_mod.muteHandler,
+                    self.mute_mod.unMuteHandler,
+                    self.kick_mod.handler,
+                    self.perm_mod.permHandler,
+                    self.update_mod.updateHandler,
+                    self.invite_mod.inviteHandler,
+                    self.statusHandler
+                )
+
+            # Add modules
+            modules = (
+                self.picsHandler,
+                self.core_mod.coreHandler,
+                self.prefix_mod.handler,
+                self.helpHandler
+            )
+
+            # Check for modules
+            for module in admin_modules+modules:
+                
+                # Do not check other modules if one already worked
+                response = module(event)
+
+                if response != None:
+                    break
 
     def helpHandler(self, event):
         if event.text[0] in self.config["aliases"]["help"]:

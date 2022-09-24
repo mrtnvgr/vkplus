@@ -19,6 +19,8 @@ class SilentSwitchModule(Module):
             # Delete event message
             self.master.deleteMessage(event.message_id)
 
+            return True
+
         # Turn off command
         elif event.text[0] in self.master.config["aliases"]["silentSwitch"]["off"]:
 
@@ -27,3 +29,5 @@ class SilentSwitchModule(Module):
 
             # Save configuration
             self.master.saveConfig()
+
+            return True

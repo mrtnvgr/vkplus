@@ -15,3 +15,5 @@ class UpdateModule(Module):
 
                 # Update
                 utils.update()
+
+            return True

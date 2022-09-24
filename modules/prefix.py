@@ -57,3 +57,5 @@ class PrefixModule(Module):
                             self.master.sendreply(
                                 event, f"Префикс нельзя изменить на ({event.text[2]})"
                             )
+
+            return True

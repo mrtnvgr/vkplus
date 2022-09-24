@@ -62,6 +62,8 @@ class MuteModule(Module):
                     # Send reply message
                     self.master.sendreply(event, f"Все замучены на {time}.")
 
+            return True
+
     def unMuteHandler(self, event):
         if event.text[0] in self.master.config["aliases"]["mute"]["unmute"]:
 
@@ -120,6 +122,8 @@ class MuteModule(Module):
 
                     # Send reply message
                     self.master.sendreply(event, "Все размучены.")
+
+            return True
 
     def cleanEmptyUsers(self):
 

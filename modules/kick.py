@@ -31,3 +31,5 @@ class KickModule(Module):
                         event,
                         text=f"{user['first_name']} {user['last_name']} исключен.",
                     )
+
+            return True

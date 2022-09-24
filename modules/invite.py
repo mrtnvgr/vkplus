@@ -25,3 +25,5 @@ class InviteModule(Module):
 
                     # Send reply message
                     self.master.sendreply(event, f"{user_name} добавлен.")
+
+            return True

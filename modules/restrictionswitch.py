@@ -19,6 +19,8 @@ class RestrictionSwitchModule(Module):
             # Send reply message
             self.master.sendme(event, "Ограничения включены.")
 
+            return True
+
         # Turn off command
         elif event.text[0] in self.master.config["aliases"]["restSwitch"]["off"]:
 
@@ -30,3 +32,5 @@ class RestrictionSwitchModule(Module):
 
             # Send reply message
             self.master.sendme(event, "Ограничения выключены.")
+
+            return True

@@ -138,3 +138,5 @@ class PermissionsModule(Module):
                             self.master.sendreply(
                                 event, f"{user_name} разрешения: {', '.join(perms)}"
                             )
+
+            return True
