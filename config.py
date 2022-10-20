@@ -158,6 +158,8 @@ class Config:
 
         self.addDefaultValue("aliases.prefix.invalidlist", ("\\", " ", "", '""', "''"))
 
+        self.addDefaultValue("aliases.roll", ["roll", "ролл"])
+
         self.addDefaultValue("aliases.help", ("хелп", "help", "помощь", "справка"))
 
         # Default permissions

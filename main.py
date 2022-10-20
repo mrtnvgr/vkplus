@@ -14,6 +14,7 @@ from modules.kick import KickModule
 from modules.update import UpdateModule
 from modules.mute import MuteModule
 from modules.prefix import PrefixModule
+from modules.roll import RollModule
 
 import config
 
@@ -40,6 +41,7 @@ class Main:
         self.kick_mod = KickModule(self)
         self.mute_mod = MuteModule(self)
         self.prefix_mod = PrefixModule(self)
+        self.roll_mod = RollModule(self)
 
     def initVkApi(self):
         self.vk = vk_api.VkApi(token=self.config["token"])
@@ -194,6 +196,7 @@ class Main:
                 self.picsHandler,
                 self.core_mod.coreHandler,
                 self.prefix_mod.handler,
+                self.roll_mod.handler,
                 self.helpHandler
             )
 
