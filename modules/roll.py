@@ -21,6 +21,8 @@ class RollModule(Module):
                 if ranges[0].isdigit() and ranges[1].isdigit():
                     
                     value = random.randint(*map(int, ranges))
+                    self.master.sendreply(event, value)
+                    return True
 
             if event.text[1].count(",") != 0 or len(event.text) > 1:
 
@@ -28,12 +30,19 @@ class RollModule(Module):
 
                 if event.text[1].count(",") != 0:
                     
-                    values.extend(event.text[1].split(","))
+                    for word in event.text[1].split(","):
+                        if bool(word) != False:
+                            if word not in values:
+                                values.append(word)
 
-                if len(event.text) > 2:
+                if len(event.text) > 1:
                     
-                    values.extend(event.text[1:])
+                    for word in event.text[1:]:
+                        if word != ",":
+                            word = word.removesuffix(",")
+                            if word not in values:
+                                values.append(word)
 
                 value = random.choice(values)
-            
-            self.master.sendreply(event, value)
+                self.master.sendreply(event, value)
+                return True
