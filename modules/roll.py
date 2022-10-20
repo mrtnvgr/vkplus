@@ -22,7 +22,7 @@ class RollModule(Module):
                     
                     value = random.randint(*map(int, ranges))
 
-            if event.text[1].count(",") != 0 or len(event.text) > 2:
+            if event.text[1].count(",") != 0 or len(event.text) > 1:
 
                 values = []
 
