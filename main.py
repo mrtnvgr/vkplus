@@ -270,11 +270,11 @@ class Main:
         num = re.findall(r"\d+", st)[0]
         st = st.removeprefix(num)
         num = int(num)
-        if st in ("м","мин"):
+        if st in ("м","мин", "m", "min"):
             num *= 60
-        elif st=="ч":
+        elif st in ("ч", "h"):
             num *= 3600
-        elif st=="д":
+        elif st in ("д", "d"):
             num *= 86400
         return cur+int(num)
 
