@@ -178,11 +178,16 @@ class CoreModule(Module):
 
                         audio = attachment["audio"]
 
+                        audioline = f"{audio['owner_id']}_{audio['id']}"
+
+                        if "access_key" in audio:
+                            audioline += f"_{audio['access_key']}"
+
                         # Add audio to stuff
                         self.stuff = self.add(
                             self.stuff,
                             "audio",
-                            f"{audio['owner_id']}_{audio['id']}_{audio['access_key']}",
+                            audioline,
                         )
 
                     # Check if attachment type is audio message
