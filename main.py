@@ -5,6 +5,9 @@ import vk_api, json, time, re, shlex
 from random import shuffle
 import requests
 
+from requests.exceptions import ConnectionError, ReadTimeout
+from vk_api.exceptions import ApiError
+
 from modules.core import CoreModule
 from modules.restrictionswitch import RestrictionSwitchModule
 from modules.silentswitch import SilentSwitchModule
@@ -150,7 +153,7 @@ class Main:
                     if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
                         self.eventHandler(event)
                 break
-            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+            except (ConnectionError, ReadTimeout, ApiError):
                 continue
 
     def eventHandler(self, event):
