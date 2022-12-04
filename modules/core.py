@@ -274,6 +274,8 @@ class CoreModule(Module):
 
                 # Upload new audio to vk servers
                 new = self.master.uploadAudio(data, artist, title)
+                if not new:
+                    continue
 
                 # Add core speed to name if speed is not default
                 if not self.speed_default:

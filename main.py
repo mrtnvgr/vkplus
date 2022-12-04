@@ -84,6 +84,8 @@ class Main:
         server = self.method("audio.getUploadServer")["upload_url"]
         response = session.post(server,
                                 files={"file": ("music.mp3", data)}).json()
+        if "server" not in response:
+            return
         audio = self.method("audio.save", {"artist": artist,
                                            "title": title,
                                            "server": response["server"],
