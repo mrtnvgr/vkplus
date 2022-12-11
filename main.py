@@ -155,7 +155,7 @@ class Main:
                     if event.type == VkEventType.MESSAGE_NEW: # NOTE: handle message edits
                         self.eventHandler(event)
                 break
-            except (ConnectionError, ReadTimeout, ApiError):
+            except:
                 continue
 
     def eventHandler(self, event):
